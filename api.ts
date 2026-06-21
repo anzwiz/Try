@@ -5,1858 +5,4894 @@
  * XpressPro FX Platform API
  * OpenAPI spec version: 0.1.0
  */
-import * as zod from "zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type {
+  MutationFunction,
+  QueryFunction,
+  QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+
+import type {
+  AccountManager,
+  ActionResult,
+  ActivityLogEntry,
+  AdminAlert,
+  AdminBankSummary,
+  AdminBillingOverview,
+  AdminBillingUserRow,
+  AdminCardSummary,
+  AdminChatReplyBody,
+  AdminP2PMerchantsResponse,
+  AdminP2PNotifyRequest,
+  AdminPresenceState,
+  AdminProvisioningStatus,
+  AdminSetWithdrawalGasFeeBody,
+  AdminStats,
+  AdminTradeRow,
+  AdminUserDetail,
+  AdminUserSummary,
+  AssetCatalogItem,
+  AuthOtpChallenge,
+  AuthSession,
+  BankAccount,
+  BankVerificationRequest,
+  BillingPaymentRequest,
+  BillingRates,
+  BillingStatus,
+  BroadcastResult,
+  BroadcastSupportTicketBody,
+  BrokerCard,
+  CardDecisionRequest,
+  CoinbaseInitiateRequest,
+  CoinbaseInitiateResponse,
+  CoinbaseStatusResponse,
+  CoinbaseWebhookEvent,
+  ConnectExchangeWalletRequest,
+  ConnectWalletRequest,
+  ConnectedWallet,
+  ConnectedWalletLiveBalance,
+  CreateAdminTradeRequest,
+  CreateAssetRequest,
+  CreateP2PListingRequest,
+  CreateP2POrderRequest,
+  CreatePromotionRequest,
+  CreateSupportTicketRequest,
+  CreateUserRequest,
+  CredentialVault,
+  CryptoAddressMap,
+  Deposit,
+  DepositRequest,
+  ExchangeAvailability,
+  GasFeeSettings,
+  GetAdminWithdrawalsParams,
+  GetMessagesParams,
+  GetP2PListingsParams,
+  HealthStatus,
+  KycDecisionRequest,
+  KycRecord,
+  KycSubmissionRequest,
+  LinkBankRequest,
+  LiveChatMessage,
+  LiveChatResponse,
+  LiveChatSession,
+  LoginRequest,
+  LoginResult,
+  MailboxReplyBody,
+  MailboxThread,
+  MailboxUserReplyBody,
+  MarkGasFeeFundedBody,
+  Message,
+  MoonpayInitiateRequest,
+  MoonpayInitiateResponse,
+  MoonpayWebhookEvent,
+  Notification,
+  NotificationSettings,
+  OkResponse,
+  P2PListing,
+  P2PMerchantApplication,
+  P2PMerchantApplicationOrNull,
+  P2PMerchantDecisionRequest,
+  P2PNotificationsResponse,
+  P2POrder,
+  PlatformReceivingAddress,
+  PlatformSettings,
+  Promotion,
+  PurchaseAssetRequest,
+  PurchaseResult,
+  ReferralInfo,
+  RequestCardRequest,
+  ResendOtpRequest,
+  SelectManagerRequest,
+  SelectedManagerResponse,
+  SendAdminP2PChatRequest,
+  SendFromConnectedWalletRequest,
+  SendFromConnectedWalletResult,
+  SendLiveChatBody,
+  SendMailBody,
+  SendMessageRequest,
+  SentEmail,
+  SignupRequest,
+  SocialTradingWallet,
+  SubmitP2PMerchantApplicationRequest,
+  SupportTicket,
+  Trade,
+  Transaction,
+  UpdateAdminTradeRequest,
+  UpdateAssetRequest,
+  UpdateBankAccountRequest,
+  UpdateCardDesignRequest,
+  UpdateOwnBankAccountRequest,
+  UpdateOwnProfileRequest,
+  UpdatePromotionRequest,
+  UpdateUserProfileRequest,
+  UpdateUserStatusRequest,
+  User,
+  VerifyOtpRequest,
+  Wallet,
+  WalletAdjustBody,
+  Withdrawal,
+  WithdrawalDecisionRequest,
+  WithdrawalGasFeeStatus,
+  WithdrawalRequest,
+} from "./api.schemas";
+
+import { customFetch } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
+
+type AwaitedInput<T> = PromiseLike<T> | T;
+
+type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * @summary Health check
  */
-export const HealthCheckResponse = zod.object({
-  status: zod.string(),
-});
+export const getHealthCheckUrl = () => {
+  return `/api/healthz`;
+};
+
+export const healthCheck = async (
+  options?: RequestInit,
+): Promise<HealthStatus> => {
+  return customFetch<HealthStatus>(getHealthCheckUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getHealthCheckQueryKey = () => {
+  return [`/api/healthz`] as const;
+};
+
+export const getHealthCheckQueryOptions = <
+  TData = Awaited<ReturnType<typeof healthCheck>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof healthCheck>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getHealthCheckQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof healthCheck>>> = ({
+    signal,
+  }) => healthCheck({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof healthCheck>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type HealthCheckQueryResult = NonNullable<
+  Awaited<ReturnType<typeof healthCheck>>
+>;
+export type HealthCheckQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Health check
+ */
+
+export function useHealthCheck<
+  TData = Awaited<ReturnType<typeof healthCheck>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof healthCheck>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get current user profile
  */
-export const GetCurrentUserResponse = zod.object({
-  id: zod.string(),
-  username: zod.string(),
-  email: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  kycVerified: zod.boolean(),
-  avatarUrl: zod.string().optional(),
-  createdAt: zod.string(),
-  selectedManagerId: zod.string().nullish(),
-  phone: zod.string().nullish(),
-  merchant: zod
-    .boolean()
-    .optional()
-    .describe("True when the user is an approved P2P merchant."),
-  moonpayEmail: zod
-    .string()
-    .nullish()
-    .describe(
-      "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-    ),
-  buyVerified: zod
-    .boolean()
-    .describe(
-      "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-    ),
-});
+export const getGetCurrentUserUrl = () => {
+  return `/api/users/me`;
+};
+
+export const getCurrentUser = async (options?: RequestInit): Promise<User> => {
+  return customFetch<User>(getGetCurrentUserUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCurrentUserQueryKey = () => {
+  return [`/api/users/me`] as const;
+};
+
+export const getGetCurrentUserQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({
+    signal,
+  }) => getCurrentUser({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCurrentUserQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCurrentUser>>
+>;
+export type GetCurrentUserQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current user profile
+ */
+
+export function useGetCurrentUser<
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCurrentUserQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get user wallets
  */
-export const GetWalletsResponseItem = zod.object({
-  id: zod.string(),
-  type: zod.enum(["main", "trading", "social"]),
-  label: zod.string(),
-  currency: zod.string(),
-  balance: zod.number(),
-  pendingBalance: zod.number(),
-  address: zod.string(),
-});
-export const GetWalletsResponse = zod.array(GetWalletsResponseItem);
+export const getGetWalletsUrl = () => {
+  return `/api/wallets`;
+};
+
+export const getWallets = async (options?: RequestInit): Promise<Wallet[]> => {
+  return customFetch<Wallet[]>(getGetWalletsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWalletsQueryKey = () => {
+  return [`/api/wallets`] as const;
+};
+
+export const getGetWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWalletsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWallets>>> = ({
+    signal,
+  }) => getWallets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWallets>>
+>;
+export type GetWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get user wallets
+ */
+
+export function useGetWallets<
+  TData = Awaited<ReturnType<typeof getWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWalletsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get wallet transactions
  */
-export const GetTransactionsResponseItem = zod.object({
-  id: zod.string(),
-  walletId: zod.string(),
-  type: zod.enum([
-    "deposit",
-    "withdrawal",
-    "trade_profit",
-    "p2p_buy",
-    "p2p_sell",
-    "transfer",
-    "fee",
-  ]),
-  amount: zod.number(),
-  currency: zod.string(),
-  status: zod.enum(["pending", "completed", "failed"]),
-  description: zod.string(),
-  createdAt: zod.string(),
-});
-export const GetTransactionsResponse = zod.array(GetTransactionsResponseItem);
+export const getGetTransactionsUrl = () => {
+  return `/api/wallets/transactions`;
+};
+
+export const getTransactions = async (
+  options?: RequestInit,
+): Promise<Transaction[]> => {
+  return customFetch<Transaction[]>(getGetTransactionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTransactionsQueryKey = () => {
+  return [`/api/wallets/transactions`] as const;
+};
+
+export const getGetTransactionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTransactions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTransactions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTransactionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransactions>>> = ({
+    signal,
+  }) => getTransactions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTransactions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTransactionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTransactions>>
+>;
+export type GetTransactionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get wallet transactions
+ */
+
+export function useGetTransactions<
+  TData = Awaited<ReturnType<typeof getTransactions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTransactions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTransactionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Connect an external wallet
  */
-export const connectExternalWalletBodyWalletTypeMax = 64;
+export const getConnectExternalWalletUrl = () => {
+  return `/api/wallets/connect`;
+};
 
-export const ConnectExternalWalletBody = zod.object({
-  method: zod.enum(["seed_phrase", "private_key"]),
-  value: zod.string(),
-  walletType: zod
-    .string()
-    .min(1)
-    .max(connectExternalWalletBodyWalletTypeMax)
-    .describe(
-      "Wallet provider name (predefined like metamask\/trust, or any free-form custom name).",
-    ),
-});
+export const connectExternalWallet = async (
+  connectWalletRequest: ConnectWalletRequest,
+  options?: RequestInit,
+): Promise<ConnectedWallet> => {
+  return customFetch<ConnectedWallet>(getConnectExternalWalletUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(connectWalletRequest),
+  });
+};
 
-export const ConnectExternalWalletResponse = zod
-  .object({
-    id: zod.string(),
-    address: zod.string(),
-    walletType: zod.string(),
-    balance: zod.number(),
-    currency: zod.string(),
-    connectedAt: zod.string(),
-    provider: zod
-      .enum(["self_custody", "moonpay", "coinbase"])
-      .describe(
-        "Connection class — self_custody for the original Connect-Wallet flow, or an exchange provider for Connect-Exchange-Wallet links.",
-      ),
-    label: zod.string().nullish(),
-    email: zod
-      .string()
-      .nullish()
-      .describe(
-        "NeXTrade email forwarded to the exchange provider as the user's account identity.",
-      ),
-    syncedProfile: zod
-      .object({
-        fullName: zod.string(),
-        email: zod.string(),
-        country: zod.string(),
-        phone: zod.string().nullish(),
-        bankName: zod.string().nullish(),
-        bankLast4: zod.string().nullish(),
-        cardLast4: zod.string().nullish(),
-      })
-      .nullish()
-      .describe(
-        "NeXTrade profile fields forwarded to the exchange provider so the user is not re-prompted for sign-up info.",
-      ),
-  })
-  .describe(
-    "Public, user-facing view of a connected external wallet. Sensitive\ncredential material (seed phrase \/ private key) is intentionally never\nreturned through user-facing endpoints. Use AdminConnectedWallet on\nadmin-only endpoints when those fields are required.\n",
-  );
+export const getConnectExternalWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectExternalWallet>>,
+    TError,
+    { data: BodyType<ConnectWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof connectExternalWallet>>,
+  TError,
+  { data: BodyType<ConnectWalletRequest> },
+  TContext
+> => {
+  const mutationKey = ["connectExternalWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof connectExternalWallet>>,
+    { data: BodyType<ConnectWalletRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return connectExternalWallet(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConnectExternalWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof connectExternalWallet>>
+>;
+export type ConnectExternalWalletMutationBody = BodyType<ConnectWalletRequest>;
+export type ConnectExternalWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Connect an external wallet
+ */
+export const useConnectExternalWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectExternalWallet>>,
+    TError,
+    { data: BodyType<ConnectWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof connectExternalWallet>>,
+  TError,
+  { data: BodyType<ConnectWalletRequest> },
+  TContext
+> => {
+  return useMutation(getConnectExternalWalletMutationOptions(options));
+};
 
 /**
  * @summary Link a MoonPay or Coinbase exchange account as an exchange wallet
  */
-export const ConnectExchangeWalletBody = zod.object({
-  provider: zod.enum(["moonpay", "coinbase"]),
-  method: zod.enum(["seed_phrase", "private_key"]),
-  value: zod
-    .string()
-    .describe("Seed phrase (12\/24 words) or 0x-prefixed 64-hex private key."),
-  label: zod.string().nullish(),
-});
+export const getConnectExchangeWalletUrl = () => {
+  return `/api/wallets/exchange/connect`;
+};
 
-export const ConnectExchangeWalletResponse = zod
-  .object({
-    id: zod.string(),
-    address: zod.string(),
-    walletType: zod.string(),
-    balance: zod.number(),
-    currency: zod.string(),
-    connectedAt: zod.string(),
-    provider: zod
-      .enum(["self_custody", "moonpay", "coinbase"])
-      .describe(
-        "Connection class — self_custody for the original Connect-Wallet flow, or an exchange provider for Connect-Exchange-Wallet links.",
-      ),
-    label: zod.string().nullish(),
-    email: zod
-      .string()
-      .nullish()
-      .describe(
-        "NeXTrade email forwarded to the exchange provider as the user's account identity.",
-      ),
-    syncedProfile: zod
-      .object({
-        fullName: zod.string(),
-        email: zod.string(),
-        country: zod.string(),
-        phone: zod.string().nullish(),
-        bankName: zod.string().nullish(),
-        bankLast4: zod.string().nullish(),
-        cardLast4: zod.string().nullish(),
-      })
-      .nullish()
-      .describe(
-        "NeXTrade profile fields forwarded to the exchange provider so the user is not re-prompted for sign-up info.",
-      ),
-  })
-  .describe(
-    "Public, user-facing view of a connected external wallet. Sensitive\ncredential material (seed phrase \/ private key) is intentionally never\nreturned through user-facing endpoints. Use AdminConnectedWallet on\nadmin-only endpoints when those fields are required.\n",
-  );
+export const connectExchangeWallet = async (
+  connectExchangeWalletRequest: ConnectExchangeWalletRequest,
+  options?: RequestInit,
+): Promise<ConnectedWallet> => {
+  return customFetch<ConnectedWallet>(getConnectExchangeWalletUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(connectExchangeWalletRequest),
+  });
+};
+
+export const getConnectExchangeWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectExchangeWallet>>,
+    TError,
+    { data: BodyType<ConnectExchangeWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof connectExchangeWallet>>,
+  TError,
+  { data: BodyType<ConnectExchangeWalletRequest> },
+  TContext
+> => {
+  const mutationKey = ["connectExchangeWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof connectExchangeWallet>>,
+    { data: BodyType<ConnectExchangeWalletRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return connectExchangeWallet(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConnectExchangeWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof connectExchangeWallet>>
+>;
+export type ConnectExchangeWalletMutationBody =
+  BodyType<ConnectExchangeWalletRequest>;
+export type ConnectExchangeWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Link a MoonPay or Coinbase exchange account as an exchange wallet
+ */
+export const useConnectExchangeWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectExchangeWallet>>,
+    TError,
+    { data: BodyType<ConnectExchangeWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof connectExchangeWallet>>,
+  TError,
+  { data: BodyType<ConnectExchangeWalletRequest> },
+  TContext
+> => {
+  return useMutation(getConnectExchangeWalletMutationOptions(options));
+};
 
 /**
  * @summary Remove a previously connected exchange wallet
  */
-export const DisconnectExchangeWalletParams = zod.object({
-  walletId: zod.coerce.string(),
-});
+export const getDisconnectExchangeWalletUrl = (walletId: string) => {
+  return `/api/wallets/exchange/${walletId}`;
+};
 
-export const DisconnectExchangeWalletResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const disconnectExchangeWallet = async (
+  walletId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getDisconnectExchangeWalletUrl(walletId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDisconnectExchangeWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectExchangeWallet>>,
+    TError,
+    { walletId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disconnectExchangeWallet>>,
+  TError,
+  { walletId: string },
+  TContext
+> => {
+  const mutationKey = ["disconnectExchangeWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disconnectExchangeWallet>>,
+    { walletId: string }
+  > = (props) => {
+    const { walletId } = props ?? {};
+
+    return disconnectExchangeWallet(walletId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DisconnectExchangeWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disconnectExchangeWallet>>
+>;
+
+export type DisconnectExchangeWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove a previously connected exchange wallet
+ */
+export const useDisconnectExchangeWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectExchangeWallet>>,
+    TError,
+    { walletId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof disconnectExchangeWallet>>,
+  TError,
+  { walletId: string },
+  TContext
+> => {
+  return useMutation(getDisconnectExchangeWalletMutationOptions(options));
+};
 
 /**
  * @summary Region availability of supported exchange wallet providers
  */
-export const GetExchangeAvailabilityResponse = zod.object({
-  userCountry: zod.string(),
-  moonpaySupported: zod.boolean(),
-  coinbaseSupported: zod.boolean(),
-  moonpayUnsupportedReason: zod.string().nullish(),
-  unsupportedCountries: zod
-    .array(zod.string())
-    .describe("ISO country codes where MoonPay is unavailable."),
-});
+export const getGetExchangeAvailabilityUrl = () => {
+  return `/api/platform/exchange-availability`;
+};
+
+export const getExchangeAvailability = async (
+  options?: RequestInit,
+): Promise<ExchangeAvailability> => {
+  return customFetch<ExchangeAvailability>(getGetExchangeAvailabilityUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetExchangeAvailabilityQueryKey = () => {
+  return [`/api/platform/exchange-availability`] as const;
+};
+
+export const getGetExchangeAvailabilityQueryOptions = <
+  TData = Awaited<ReturnType<typeof getExchangeAvailability>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getExchangeAvailability>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetExchangeAvailabilityQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getExchangeAvailability>>
+  > = ({ signal }) => getExchangeAvailability({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getExchangeAvailability>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetExchangeAvailabilityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getExchangeAvailability>>
+>;
+export type GetExchangeAvailabilityQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Region availability of supported exchange wallet providers
+ */
+
+export function useGetExchangeAvailability<
+  TData = Awaited<ReturnType<typeof getExchangeAvailability>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getExchangeAvailability>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetExchangeAvailabilityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Build a Coinbase hosted-checkout URL for a Buy Crypto flow
  */
+export const getInitiateCoinbaseBuyUrl = () => {
+  return `/api/coinbase/initiate`;
+};
 
-export const InitiateCoinbaseBuyBody = zod.object({
-  assetSymbol: zod.string(),
-  fiatAmount: zod.number().min(1),
-  fiatCurrency: zod.string(),
-  destinationAddress: zod.string(),
-  destinationKind: zod.enum(["platform", "external", "custom"]),
-});
+export const initiateCoinbaseBuy = async (
+  coinbaseInitiateRequest: CoinbaseInitiateRequest,
+  options?: RequestInit,
+): Promise<CoinbaseInitiateResponse> => {
+  return customFetch<CoinbaseInitiateResponse>(getInitiateCoinbaseBuyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(coinbaseInitiateRequest),
+  });
+};
 
-export const InitiateCoinbaseBuyResponse = zod.object({
-  url: zod.string(),
-  sandbox: zod.boolean(),
-  signed: zod.boolean(),
-  configured: zod.boolean(),
-  autoFilled: zod.boolean(),
-  notice: zod.string().nullish(),
-});
+export const getInitiateCoinbaseBuyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiateCoinbaseBuy>>,
+    TError,
+    { data: BodyType<CoinbaseInitiateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof initiateCoinbaseBuy>>,
+  TError,
+  { data: BodyType<CoinbaseInitiateRequest> },
+  TContext
+> => {
+  const mutationKey = ["initiateCoinbaseBuy"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof initiateCoinbaseBuy>>,
+    { data: BodyType<CoinbaseInitiateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return initiateCoinbaseBuy(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type InitiateCoinbaseBuyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof initiateCoinbaseBuy>>
+>;
+export type InitiateCoinbaseBuyMutationBody = BodyType<CoinbaseInitiateRequest>;
+export type InitiateCoinbaseBuyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Build a Coinbase hosted-checkout URL for a Buy Crypto flow
+ */
+export const useInitiateCoinbaseBuy = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiateCoinbaseBuy>>,
+    TError,
+    { data: BodyType<CoinbaseInitiateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof initiateCoinbaseBuy>>,
+  TError,
+  { data: BodyType<CoinbaseInitiateRequest> },
+  TContext
+> => {
+  return useMutation(getInitiateCoinbaseBuyMutationOptions(options));
+};
 
 /**
  * @summary Look up the settlement status of a Coinbase Buy Crypto transaction
  */
-export const GetCoinbaseStatusParams = zod.object({
-  id: zod.coerce.string(),
-});
+export const getGetCoinbaseStatusUrl = (id: string) => {
+  return `/api/coinbase/status/${id}`;
+};
 
-export const GetCoinbaseStatusResponse = zod.object({
-  id: zod.string(),
-  status: zod.enum(["pending", "completed", "skipped_external", "unknown"]),
-  outcome: zod.enum(["credited", "skipped_external"]).nullish(),
-  walletId: zod.string().nullish(),
-  cryptoAmount: zod.number().nullish(),
-  cryptoCode: zod.string().nullish(),
-  processedAt: zod.coerce.date().nullish(),
-  destinationKind: zod.enum(["platform", "external", "custom"]).nullish(),
-  destinationAddress: zod.string().nullish(),
-  assetSymbol: zod.string().nullish(),
-  fiatAmount: zod.number().nullish(),
-  fiatCurrency: zod.string().nullish(),
-});
+export const getCoinbaseStatus = async (
+  id: string,
+  options?: RequestInit,
+): Promise<CoinbaseStatusResponse> => {
+  return customFetch<CoinbaseStatusResponse>(getGetCoinbaseStatusUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCoinbaseStatusQueryKey = (id: string) => {
+  return [`/api/coinbase/status/${id}`] as const;
+};
+
+export const getGetCoinbaseStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCoinbaseStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoinbaseStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCoinbaseStatusQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCoinbaseStatus>>
+  > = ({ signal }) => getCoinbaseStatus(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCoinbaseStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCoinbaseStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCoinbaseStatus>>
+>;
+export type GetCoinbaseStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Look up the settlement status of a Coinbase Buy Crypto transaction
+ */
+
+export function useGetCoinbaseStatus<
+  TData = Awaited<ReturnType<typeof getCoinbaseStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoinbaseStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCoinbaseStatusQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Coinbase transaction webhook (purchase completion events)
  */
-export const CoinbaseWebhookBody = zod.object({
-  type: zod.string(),
-  data: zod.object({
-    id: zod.string(),
-    status: zod.string(),
-    walletAddress: zod.string().nullish(),
-    currency: zod
-      .object({
-        code: zod.string().optional(),
-      })
-      .nullish(),
-    quoteCurrencyAmount: zod.number().nullish(),
-    baseCurrencyAmount: zod.number().nullish(),
-    baseCurrencyCode: zod.string().nullish(),
-    externalCustomerId: zod.string().nullish(),
-    externalTransactionId: zod.string().nullish(),
-  }),
-});
+export const getCoinbaseWebhookUrl = () => {
+  return `/api/coinbase/webhook`;
+};
 
-export const CoinbaseWebhookResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const coinbaseWebhook = async (
+  coinbaseWebhookEvent: CoinbaseWebhookEvent,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getCoinbaseWebhookUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(coinbaseWebhookEvent),
+  });
+};
+
+export const getCoinbaseWebhookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof coinbaseWebhook>>,
+    TError,
+    { data: BodyType<CoinbaseWebhookEvent> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof coinbaseWebhook>>,
+  TError,
+  { data: BodyType<CoinbaseWebhookEvent> },
+  TContext
+> => {
+  const mutationKey = ["coinbaseWebhook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof coinbaseWebhook>>,
+    { data: BodyType<CoinbaseWebhookEvent> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return coinbaseWebhook(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CoinbaseWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof coinbaseWebhook>>
+>;
+export type CoinbaseWebhookMutationBody = BodyType<CoinbaseWebhookEvent>;
+export type CoinbaseWebhookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Coinbase transaction webhook (purchase completion events)
+ */
+export const useCoinbaseWebhook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof coinbaseWebhook>>,
+    TError,
+    { data: BodyType<CoinbaseWebhookEvent> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof coinbaseWebhook>>,
+  TError,
+  { data: BodyType<CoinbaseWebhookEvent> },
+  TContext
+> => {
+  return useMutation(getCoinbaseWebhookMutationOptions(options));
+};
 
 /**
  * @summary Get user trades
  */
-export const GetTradesResponseItem = zod.object({
-  id: zod.string(),
-  pair: zod.string(),
-  type: zod.enum(["long", "short"]),
-  status: zod.enum(["active", "completed", "cancelled"]),
-  entryPrice: zod.number(),
-  currentPrice: zod.number(),
-  targetPrice: zod.number(),
-  amount: zod.number(),
-  currency: zod.string(),
-  profit: zod.number(),
-  expectedProfit: zod.number(),
-  managerId: zod.string().nullish(),
-  createdAt: zod.string(),
-  completedAt: zod.string().nullish(),
-});
-export const GetTradesResponse = zod.array(GetTradesResponseItem);
+export const getGetTradesUrl = () => {
+  return `/api/trades`;
+};
+
+export const getTrades = async (options?: RequestInit): Promise<Trade[]> => {
+  return customFetch<Trade[]>(getGetTradesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTradesQueryKey = () => {
+  return [`/api/trades`] as const;
+};
+
+export const getGetTradesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTrades>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getTrades>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTradesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrades>>> = ({
+    signal,
+  }) => getTrades({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTrades>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTradesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTrades>>
+>;
+export type GetTradesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get user trades
+ */
+
+export function useGetTrades<
+  TData = Awaited<ReturnType<typeof getTrades>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getTrades>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTradesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get social trading wallet summary
  */
-export const GetSocialTradingWalletResponse = zod.object({
-  totalProfits: zod.number(),
-  pendingProfits: zod.number(),
-  currency: zod.string(),
-  locked: zod.boolean(),
-  activeTrades: zod.number(),
-});
+export const getGetSocialTradingWalletUrl = () => {
+  return `/api/trades/social-wallet`;
+};
+
+export const getSocialTradingWallet = async (
+  options?: RequestInit,
+): Promise<SocialTradingWallet> => {
+  return customFetch<SocialTradingWallet>(getGetSocialTradingWalletUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSocialTradingWalletQueryKey = () => {
+  return [`/api/trades/social-wallet`] as const;
+};
+
+export const getGetSocialTradingWalletQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSocialTradingWallet>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSocialTradingWallet>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetSocialTradingWalletQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSocialTradingWallet>>
+  > = ({ signal }) => getSocialTradingWallet({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSocialTradingWallet>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSocialTradingWalletQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSocialTradingWallet>>
+>;
+export type GetSocialTradingWalletQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get social trading wallet summary
+ */
+
+export function useGetSocialTradingWallet<
+  TData = Awaited<ReturnType<typeof getSocialTradingWallet>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSocialTradingWallet>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSocialTradingWalletQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Release completed trade funds to main wallet
  */
-export const ReleaseTradeFundsParams = zod.object({
-  tradeId: zod.coerce.string(),
-});
+export const getReleaseTradeFundsUrl = (tradeId: string) => {
+  return `/api/trades/${tradeId}/release`;
+};
 
-export const ReleaseTradeFundsResponse = zod.object({
-  success: zod.boolean(),
-  message: zod.string(),
-});
+export const releaseTradeFunds = async (
+  tradeId: string,
+  options?: RequestInit,
+): Promise<ActionResult> => {
+  return customFetch<ActionResult>(getReleaseTradeFundsUrl(tradeId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getReleaseTradeFundsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof releaseTradeFunds>>,
+    TError,
+    { tradeId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof releaseTradeFunds>>,
+  TError,
+  { tradeId: string },
+  TContext
+> => {
+  const mutationKey = ["releaseTradeFunds"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof releaseTradeFunds>>,
+    { tradeId: string }
+  > = (props) => {
+    const { tradeId } = props ?? {};
+
+    return releaseTradeFunds(tradeId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ReleaseTradeFundsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof releaseTradeFunds>>
+>;
+
+export type ReleaseTradeFundsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Release completed trade funds to main wallet
+ */
+export const useReleaseTradeFunds = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof releaseTradeFunds>>,
+    TError,
+    { tradeId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof releaseTradeFunds>>,
+  TError,
+  { tradeId: string },
+  TContext
+> => {
+  return useMutation(getReleaseTradeFundsMutationOptions(options));
+};
 
 /**
  * @summary Get list of account managers
  */
-export const GetManagersResponseItem = zod.object({
-  id: zod.string(),
-  name: zod.string(),
-  avatarUrl: zod.string().optional(),
-  title: zod.string(),
-  experience: zod.number(),
-  strategy: zod.string(),
-  performance: zod.number(),
-  totalClients: zod.number(),
-  winRate: zod.number(),
-  specialization: zod.string(),
-  bio: zod.string(),
-  contactEmail: zod.string(),
-  available: zod.boolean(),
-});
-export const GetManagersResponse = zod.array(GetManagersResponseItem);
+export const getGetManagersUrl = () => {
+  return `/api/managers`;
+};
+
+export const getManagers = async (
+  options?: RequestInit,
+): Promise<AccountManager[]> => {
+  return customFetch<AccountManager[]>(getGetManagersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetManagersQueryKey = () => {
+  return [`/api/managers`] as const;
+};
+
+export const getGetManagersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getManagers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getManagers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetManagersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getManagers>>> = ({
+    signal,
+  }) => getManagers({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getManagers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetManagersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getManagers>>
+>;
+export type GetManagersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get list of account managers
+ */
+
+export function useGetManagers<
+  TData = Awaited<ReturnType<typeof getManagers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getManagers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetManagersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get user's selected account manager
  */
-export const GetSelectedManagerResponse = zod.object({
-  manager: zod
-    .object({
-      id: zod.string(),
-      name: zod.string(),
-      avatarUrl: zod.string().optional(),
-      title: zod.string(),
-      experience: zod.number(),
-      strategy: zod.string(),
-      performance: zod.number(),
-      totalClients: zod.number(),
-      winRate: zod.number(),
-      specialization: zod.string(),
-      bio: zod.string(),
-      contactEmail: zod.string(),
-      available: zod.boolean(),
-    })
-    .nullable(),
-});
+export const getGetSelectedManagerUrl = () => {
+  return `/api/managers/selected`;
+};
+
+export const getSelectedManager = async (
+  options?: RequestInit,
+): Promise<SelectedManagerResponse> => {
+  return customFetch<SelectedManagerResponse>(getGetSelectedManagerUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSelectedManagerQueryKey = () => {
+  return [`/api/managers/selected`] as const;
+};
+
+export const getGetSelectedManagerQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSelectedManager>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSelectedManager>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSelectedManagerQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSelectedManager>>
+  > = ({ signal }) => getSelectedManager({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSelectedManager>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSelectedManagerQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSelectedManager>>
+>;
+export type GetSelectedManagerQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get user's selected account manager
+ */
+
+export function useGetSelectedManager<
+  TData = Awaited<ReturnType<typeof getSelectedManager>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSelectedManager>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSelectedManagerQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Select an account manager
  */
-export const SelectManagerBody = zod.object({
-  managerId: zod.string(),
-});
+export const getSelectManagerUrl = () => {
+  return `/api/managers/selected`;
+};
 
-export const SelectManagerResponse = zod.object({
-  success: zod.boolean(),
-  message: zod.string(),
-});
+export const selectManager = async (
+  selectManagerRequest: SelectManagerRequest,
+  options?: RequestInit,
+): Promise<ActionResult> => {
+  return customFetch<ActionResult>(getSelectManagerUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(selectManagerRequest),
+  });
+};
+
+export const getSelectManagerMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof selectManager>>,
+    TError,
+    { data: BodyType<SelectManagerRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof selectManager>>,
+  TError,
+  { data: BodyType<SelectManagerRequest> },
+  TContext
+> => {
+  const mutationKey = ["selectManager"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof selectManager>>,
+    { data: BodyType<SelectManagerRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return selectManager(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SelectManagerMutationResult = NonNullable<
+  Awaited<ReturnType<typeof selectManager>>
+>;
+export type SelectManagerMutationBody = BodyType<SelectManagerRequest>;
+export type SelectManagerMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Select an account manager
+ */
+export const useSelectManager = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof selectManager>>,
+    TError,
+    { data: BodyType<SelectManagerRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof selectManager>>,
+  TError,
+  { data: BodyType<SelectManagerRequest> },
+  TContext
+> => {
+  return useMutation(getSelectManagerMutationOptions(options));
+};
 
 /**
  * @summary Get messages with manager or in P2P context
  */
-export const GetMessagesQueryParams = zod.object({
-  context: zod.enum(["manager", "p2p", "support"]).optional(),
-  contextId: zod.coerce.string().optional(),
-});
+export const getGetMessagesUrl = (params?: GetMessagesParams) => {
+  const normalizedParams = new URLSearchParams();
 
-export const GetMessagesResponseItem = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
-export const GetMessagesResponse = zod.array(GetMessagesResponseItem);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/messages?${stringifiedParams}`
+    : `/api/messages`;
+};
+
+export const getMessages = async (
+  params?: GetMessagesParams,
+  options?: RequestInit,
+): Promise<Message[]> => {
+  return customFetch<Message[]>(getGetMessagesUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMessagesQueryKey = (params?: GetMessagesParams) => {
+  return [`/api/messages`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetMessagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMessagesQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMessages>>> = ({
+    signal,
+  }) => getMessages(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMessages>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMessagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMessages>>
+>;
+export type GetMessagesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get messages with manager or in P2P context
+ */
+
+export function useGetMessages<
+  TData = Awaited<ReturnType<typeof getMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMessagesQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Send a message
  */
-export const SendMessageBody = zod.object({
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-});
+export const getSendMessageUrl = () => {
+  return `/api/messages`;
+};
 
-export const SendMessageResponse = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
+export const sendMessage = async (
+  sendMessageRequest: SendMessageRequest,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getSendMessageUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendMessageRequest),
+  });
+};
+
+export const getSendMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMessage>>,
+    TError,
+    { data: BodyType<SendMessageRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendMessage>>,
+  TError,
+  { data: BodyType<SendMessageRequest> },
+  TContext
+> => {
+  const mutationKey = ["sendMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendMessage>>,
+    { data: BodyType<SendMessageRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendMessage(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendMessage>>
+>;
+export type SendMessageMutationBody = BodyType<SendMessageRequest>;
+export type SendMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a message
+ */
+export const useSendMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMessage>>,
+    TError,
+    { data: BodyType<SendMessageRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendMessage>>,
+  TError,
+  { data: BodyType<SendMessageRequest> },
+  TContext
+> => {
+  return useMutation(getSendMessageMutationOptions(options));
+};
 
 /**
  * @summary Get P2P marketplace listings
  */
-export const GetP2PListingsQueryParams = zod.object({
-  type: zod.enum(["buy", "sell"]).optional(),
-  asset: zod.coerce.string().optional(),
-});
+export const getGetP2PListingsUrl = (params?: GetP2PListingsParams) => {
+  const normalizedParams = new URLSearchParams();
 
-export const GetP2PListingsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userAvatarUrl: zod.string().nullish(),
-  type: zod.enum(["buy", "sell"]),
-  asset: zod.string(),
-  amount: zod.number(),
-  price: zod.number(),
-  currency: zod.string(),
-  minOrder: zod.number(),
-  maxOrder: zod.number(),
-  paymentMethods: zod.array(zod.string()),
-  completionRate: zod.number(),
-  totalTrades: zod.number(),
-  status: zod.enum(["active", "inactive", "completed"]),
-  createdAt: zod.string(),
-});
-export const GetP2PListingsResponse = zod.array(GetP2PListingsResponseItem);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/p2p/listings?${stringifiedParams}`
+    : `/api/p2p/listings`;
+};
+
+export const getP2PListings = async (
+  params?: GetP2PListingsParams,
+  options?: RequestInit,
+): Promise<P2PListing[]> => {
+  return customFetch<P2PListing[]>(getGetP2PListingsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetP2PListingsQueryKey = (params?: GetP2PListingsParams) => {
+  return [`/api/p2p/listings`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetP2PListingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getP2PListings>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetP2PListingsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getP2PListings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetP2PListingsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getP2PListings>>> = ({
+    signal,
+  }) => getP2PListings(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getP2PListings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetP2PListingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getP2PListings>>
+>;
+export type GetP2PListingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get P2P marketplace listings
+ */
+
+export function useGetP2PListings<
+  TData = Awaited<ReturnType<typeof getP2PListings>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetP2PListingsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getP2PListings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetP2PListingsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a new P2P listing
  */
-export const createP2PListingBodyAmountMin = 0.000001;
+export const getCreateP2PListingUrl = () => {
+  return `/api/p2p/listings`;
+};
 
-export const createP2PListingBodyPriceMin = 0.000001;
+export const createP2PListing = async (
+  createP2PListingRequest: CreateP2PListingRequest,
+  options?: RequestInit,
+): Promise<P2PListing> => {
+  return customFetch<P2PListing>(getCreateP2PListingUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createP2PListingRequest),
+  });
+};
 
-export const createP2PListingBodyMinOrderMin = 0.000001;
+export const getCreateP2PListingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createP2PListing>>,
+    TError,
+    { data: BodyType<CreateP2PListingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createP2PListing>>,
+  TError,
+  { data: BodyType<CreateP2PListingRequest> },
+  TContext
+> => {
+  const mutationKey = ["createP2PListing"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const createP2PListingBodyMaxOrderMin = 0.000001;
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createP2PListing>>,
+    { data: BodyType<CreateP2PListingRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-export const CreateP2PListingBody = zod.object({
-  type: zod.enum(["buy", "sell"]),
-  asset: zod.string(),
-  amount: zod.number().min(createP2PListingBodyAmountMin),
-  price: zod.number().min(createP2PListingBodyPriceMin),
-  currency: zod.string(),
-  minOrder: zod.number().min(createP2PListingBodyMinOrderMin),
-  maxOrder: zod.number().min(createP2PListingBodyMaxOrderMin),
-  paymentMethods: zod.array(zod.string()),
-});
+    return createP2PListing(data, requestOptions);
+  };
 
-export const CreateP2PListingResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userAvatarUrl: zod.string().nullish(),
-  type: zod.enum(["buy", "sell"]),
-  asset: zod.string(),
-  amount: zod.number(),
-  price: zod.number(),
-  currency: zod.string(),
-  minOrder: zod.number(),
-  maxOrder: zod.number(),
-  paymentMethods: zod.array(zod.string()),
-  completionRate: zod.number(),
-  totalTrades: zod.number(),
-  status: zod.enum(["active", "inactive", "completed"]),
-  createdAt: zod.string(),
-});
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateP2PListingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createP2PListing>>
+>;
+export type CreateP2PListingMutationBody = BodyType<CreateP2PListingRequest>;
+export type CreateP2PListingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new P2P listing
+ */
+export const useCreateP2PListing = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createP2PListing>>,
+    TError,
+    { data: BodyType<CreateP2PListingRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createP2PListing>>,
+  TError,
+  { data: BodyType<CreateP2PListingRequest> },
+  TContext
+> => {
+  return useMutation(getCreateP2PListingMutationOptions(options));
+};
 
 /**
  * @summary Get user's P2P orders
  */
-export const GetP2POrdersResponseItem = zod.object({
-  id: zod.string(),
-  listingId: zod.string(),
-  buyerId: zod.string(),
-  sellerId: zod.string(),
-  asset: zod.string(),
-  amount: zod.number(),
-  price: zod.number(),
-  currency: zod.string(),
-  status: zod.enum([
-    "pending",
-    "payment_sent",
-    "completed",
-    "disputed",
-    "cancelled",
-  ]),
-  createdAt: zod.string(),
-});
-export const GetP2POrdersResponse = zod.array(GetP2POrdersResponseItem);
+export const getGetP2POrdersUrl = () => {
+  return `/api/p2p/orders`;
+};
+
+export const getP2POrders = async (
+  options?: RequestInit,
+): Promise<P2POrder[]> => {
+  return customFetch<P2POrder[]>(getGetP2POrdersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetP2POrdersQueryKey = () => {
+  return [`/api/p2p/orders`] as const;
+};
+
+export const getGetP2POrdersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getP2POrders>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getP2POrders>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetP2POrdersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getP2POrders>>> = ({
+    signal,
+  }) => getP2POrders({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getP2POrders>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetP2POrdersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getP2POrders>>
+>;
+export type GetP2POrdersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get user's P2P orders
+ */
+
+export function useGetP2POrders<
+  TData = Awaited<ReturnType<typeof getP2POrders>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getP2POrders>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetP2POrdersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a P2P order (initiate trade)
  */
-export const CreateP2POrderBody = zod.object({
-  listingId: zod.string(),
-  amount: zod.number(),
-  paymentSource: zod
-    .enum(["platform_wallet", "external_wallet", "bank_transfer"])
-    .nullish()
-    .describe(
-      "Which payment source the buyer is funding the order from, or\n(for sell-side listings where the current user is the seller)\nwhich destination the seller is asking proceeds to land in.\nWhen omitted the server defaults to platform_wallet.\n",
-    ),
-  externalWalletId: zod.string().nullish(),
-  txHash: zod.string().nullish(),
-  settlementAsset: zod.string().nullish(),
-});
+export const getCreateP2POrderUrl = () => {
+  return `/api/p2p/orders`;
+};
 
-export const CreateP2POrderResponse = zod.object({
-  id: zod.string(),
-  listingId: zod.string(),
-  buyerId: zod.string(),
-  sellerId: zod.string(),
-  asset: zod.string(),
-  amount: zod.number(),
-  price: zod.number(),
-  currency: zod.string(),
-  status: zod.enum([
-    "pending",
-    "payment_sent",
-    "completed",
-    "disputed",
-    "cancelled",
-  ]),
-  createdAt: zod.string(),
-});
+export const createP2POrder = async (
+  createP2POrderRequest: CreateP2POrderRequest,
+  options?: RequestInit,
+): Promise<P2POrder> => {
+  return customFetch<P2POrder>(getCreateP2POrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createP2POrderRequest),
+  });
+};
+
+export const getCreateP2POrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createP2POrder>>,
+    TError,
+    { data: BodyType<CreateP2POrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createP2POrder>>,
+  TError,
+  { data: BodyType<CreateP2POrderRequest> },
+  TContext
+> => {
+  const mutationKey = ["createP2POrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createP2POrder>>,
+    { data: BodyType<CreateP2POrderRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createP2POrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateP2POrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createP2POrder>>
+>;
+export type CreateP2POrderMutationBody = BodyType<CreateP2POrderRequest>;
+export type CreateP2POrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a P2P order (initiate trade)
+ */
+export const useCreateP2POrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createP2POrder>>,
+    TError,
+    { data: BodyType<CreateP2POrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createP2POrder>>,
+  TError,
+  { data: BodyType<CreateP2POrderRequest> },
+  TContext
+> => {
+  return useMutation(getCreateP2POrderMutationOptions(options));
+};
 
 /**
  * @summary Get P2P admin notifications
  */
-export const GetP2PNotificationsResponse = zod.object({
-  notifications: zod.array(
-    zod.object({
-      id: zod.string(),
-      type: zod.enum([
-        "deposit_incoming",
-        "deposit_confirmed",
-        "p2p_deposit",
-        "order_update",
-        "admin_message",
-      ]),
-      title: zod.string(),
-      message: zod.string(),
-      orderId: zod.string().nullish(),
-      read: zod.boolean(),
-      createdAt: zod.string(),
-      amount: zod
-        .number()
-        .nullish()
-        .describe(
-          "Structured deposit amount (set for deposit_incoming\/deposit_confirmed).",
-        ),
-      currency: zod
-        .string()
-        .nullish()
-        .describe(
-          "Fiat or asset code that pairs with `amount` (e.g. USD, USDT).",
-        ),
-      asset: zod
-        .string()
-        .nullish()
-        .describe("Asset symbol the deposit relates to (e.g. BTC, USDT)."),
-      reference: zod
-        .string()
-        .nullish()
-        .describe(
-          "Bank\/wire\/e-transfer reference the merchant should match.",
-        ),
-      instructions: zod
-        .string()
-        .nullish()
-        .describe(
-          "Free-form instructions admin sent with the deposit notification.",
-        ),
-    }),
-  ),
-  unreadCount: zod
-    .number()
-    .describe("Number of notifications with read=false."),
-});
+export const getGetP2PNotificationsUrl = () => {
+  return `/api/p2p/notifications`;
+};
+
+export const getP2PNotifications = async (
+  options?: RequestInit,
+): Promise<P2PNotificationsResponse> => {
+  return customFetch<P2PNotificationsResponse>(getGetP2PNotificationsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetP2PNotificationsQueryKey = () => {
+  return [`/api/p2p/notifications`] as const;
+};
+
+export const getGetP2PNotificationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getP2PNotifications>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getP2PNotifications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetP2PNotificationsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getP2PNotifications>>
+  > = ({ signal }) => getP2PNotifications({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getP2PNotifications>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetP2PNotificationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getP2PNotifications>>
+>;
+export type GetP2PNotificationsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get P2P admin notifications
+ */
+
+export function useGetP2PNotifications<
+  TData = Awaited<ReturnType<typeof getP2PNotifications>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getP2PNotifications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetP2PNotificationsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Mark a P2P notification as read
  */
-export const MarkP2PNotificationReadParams = zod.object({
-  id: zod.coerce.string(),
-});
+export const getMarkP2PNotificationReadUrl = (id: string) => {
+  return `/api/p2p/notifications/${id}/read`;
+};
 
-export const MarkP2PNotificationReadResponse = zod.object({
-  notifications: zod.array(
-    zod.object({
-      id: zod.string(),
-      type: zod.enum([
-        "deposit_incoming",
-        "deposit_confirmed",
-        "p2p_deposit",
-        "order_update",
-        "admin_message",
-      ]),
-      title: zod.string(),
-      message: zod.string(),
-      orderId: zod.string().nullish(),
-      read: zod.boolean(),
-      createdAt: zod.string(),
-      amount: zod
-        .number()
-        .nullish()
-        .describe(
-          "Structured deposit amount (set for deposit_incoming\/deposit_confirmed).",
-        ),
-      currency: zod
-        .string()
-        .nullish()
-        .describe(
-          "Fiat or asset code that pairs with `amount` (e.g. USD, USDT).",
-        ),
-      asset: zod
-        .string()
-        .nullish()
-        .describe("Asset symbol the deposit relates to (e.g. BTC, USDT)."),
-      reference: zod
-        .string()
-        .nullish()
-        .describe(
-          "Bank\/wire\/e-transfer reference the merchant should match.",
-        ),
-      instructions: zod
-        .string()
-        .nullish()
-        .describe(
-          "Free-form instructions admin sent with the deposit notification.",
-        ),
-    }),
-  ),
-  unreadCount: zod
-    .number()
-    .describe("Number of notifications with read=false."),
-});
+export const markP2PNotificationRead = async (
+  id: string,
+  options?: RequestInit,
+): Promise<P2PNotificationsResponse> => {
+  return customFetch<P2PNotificationsResponse>(
+    getMarkP2PNotificationReadUrl(id),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getMarkP2PNotificationReadMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markP2PNotificationRead>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markP2PNotificationRead>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["markP2PNotificationRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markP2PNotificationRead>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return markP2PNotificationRead(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkP2PNotificationReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markP2PNotificationRead>>
+>;
+
+export type MarkP2PNotificationReadMutationError = ErrorType<void>;
+
+/**
+ * @summary Mark a P2P notification as read
+ */
+export const useMarkP2PNotificationRead = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markP2PNotificationRead>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markP2PNotificationRead>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getMarkP2PNotificationReadMutationOptions(options));
+};
 
 /**
  * @summary Get available assets to purchase
  */
-export const GetAssetCatalogResponseItem = zod.object({
-  id: zod.string(),
-  symbol: zod.string(),
-  name: zod.string(),
-  price: zod.number(),
-  currency: zod.string(),
-  change24h: zod.number(),
-  logoUrl: zod.string().nullish(),
-  available: zod.boolean(),
-});
-export const GetAssetCatalogResponse = zod.array(GetAssetCatalogResponseItem);
+export const getGetAssetCatalogUrl = () => {
+  return `/api/assets/catalog`;
+};
+
+export const getAssetCatalog = async (
+  options?: RequestInit,
+): Promise<AssetCatalogItem[]> => {
+  return customFetch<AssetCatalogItem[]>(getGetAssetCatalogUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAssetCatalogQueryKey = () => {
+  return [`/api/assets/catalog`] as const;
+};
+
+export const getGetAssetCatalogQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAssetCatalog>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAssetCatalog>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAssetCatalogQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAssetCatalog>>> = ({
+    signal,
+  }) => getAssetCatalog({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAssetCatalog>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAssetCatalogQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAssetCatalog>>
+>;
+export type GetAssetCatalogQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get available assets to purchase
+ */
+
+export function useGetAssetCatalog<
+  TData = Awaited<ReturnType<typeof getAssetCatalog>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAssetCatalog>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAssetCatalogQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Purchase an asset
  */
-export const purchaseAssetBodyAmountMin = 0.000001;
+export const getPurchaseAssetUrl = () => {
+  return `/api/assets/purchase`;
+};
 
-export const PurchaseAssetBody = zod.object({
-  assetId: zod.string(),
-  amount: zod.number().min(purchaseAssetBodyAmountMin),
-  paymentMethod: zod.enum([
-    "main_wallet",
-    "card",
-    "bank_transfer",
-    "external_wallet",
-  ]),
-  externalWalletId: zod
-    .string()
-    .nullish()
-    .describe(
-      "Required when paymentMethod is external_wallet — id of the connected wallet that broadcasts the on-chain payment.",
-    ),
-  txHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain transaction hash recorded after a successful external_wallet send.",
-    ),
-  settlementAsset: zod
-    .string()
-    .nullish()
-    .describe(
-      "Asset symbol (e.g. ETH, USDT, USDC, DAI) the on-chain payment was\ndenominated in. Used by the server to verify the on-chain\ntransaction matches the expected amount and recipient.\n",
-    ),
-});
+export const purchaseAsset = async (
+  purchaseAssetRequest: PurchaseAssetRequest,
+  options?: RequestInit,
+): Promise<PurchaseResult> => {
+  return customFetch<PurchaseResult>(getPurchaseAssetUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(purchaseAssetRequest),
+  });
+};
 
-export const PurchaseAssetResponse = zod.object({
-  success: zod.boolean(),
-  transactionId: zod.string(),
-  assetSymbol: zod.string(),
-  amountPurchased: zod.number(),
-  totalCost: zod.number(),
-  message: zod.string(),
-});
+export const getPurchaseAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof purchaseAsset>>,
+    TError,
+    { data: BodyType<PurchaseAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof purchaseAsset>>,
+  TError,
+  { data: BodyType<PurchaseAssetRequest> },
+  TContext
+> => {
+  const mutationKey = ["purchaseAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof purchaseAsset>>,
+    { data: BodyType<PurchaseAssetRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return purchaseAsset(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PurchaseAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof purchaseAsset>>
+>;
+export type PurchaseAssetMutationBody = BodyType<PurchaseAssetRequest>;
+export type PurchaseAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Purchase an asset
+ */
+export const usePurchaseAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof purchaseAsset>>,
+    TError,
+    { data: BodyType<PurchaseAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof purchaseAsset>>,
+  TError,
+  { data: BodyType<PurchaseAssetRequest> },
+  TContext
+> => {
+  return useMutation(getPurchaseAssetMutationOptions(options));
+};
 
 /**
  * @summary Get user support tickets
  */
-export const GetSupportTicketsResponseItem = zod.object({
-  id: zod.string(),
-  subject: zod.string(),
-  status: zod.enum(["open", "in_progress", "resolved", "closed"]),
-  priority: zod.enum(["low", "medium", "high", "urgent"]),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      senderId: zod.string(),
-      senderName: zod.string(),
-      senderAvatar: zod.string().nullish(),
-      content: zod.string(),
-      context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-      contextId: zod.string().nullish(),
-      isFromUser: zod.boolean(),
-      createdAt: zod.string(),
-    }),
-  ),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-});
-export const GetSupportTicketsResponse = zod.array(
-  GetSupportTicketsResponseItem,
-);
+export const getGetSupportTicketsUrl = () => {
+  return `/api/support/tickets`;
+};
+
+export const getSupportTickets = async (
+  options?: RequestInit,
+): Promise<SupportTicket[]> => {
+  return customFetch<SupportTicket[]>(getGetSupportTicketsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSupportTicketsQueryKey = () => {
+  return [`/api/support/tickets`] as const;
+};
+
+export const getGetSupportTicketsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSupportTickets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSupportTickets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSupportTicketsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSupportTickets>>
+  > = ({ signal }) => getSupportTickets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSupportTickets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSupportTicketsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSupportTickets>>
+>;
+export type GetSupportTicketsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get user support tickets
+ */
+
+export function useGetSupportTickets<
+  TData = Awaited<ReturnType<typeof getSupportTickets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSupportTickets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSupportTicketsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a support ticket
  */
-export const CreateSupportTicketBody = zod.object({
-  subject: zod.string(),
-  message: zod.string(),
-  priority: zod.enum(["low", "medium", "high", "urgent"]),
-});
+export const getCreateSupportTicketUrl = () => {
+  return `/api/support/tickets`;
+};
 
-export const CreateSupportTicketResponse = zod.object({
-  id: zod.string(),
-  subject: zod.string(),
-  status: zod.enum(["open", "in_progress", "resolved", "closed"]),
-  priority: zod.enum(["low", "medium", "high", "urgent"]),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      senderId: zod.string(),
-      senderName: zod.string(),
-      senderAvatar: zod.string().nullish(),
-      content: zod.string(),
-      context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-      contextId: zod.string().nullish(),
-      isFromUser: zod.boolean(),
-      createdAt: zod.string(),
-    }),
-  ),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-});
+export const createSupportTicket = async (
+  createSupportTicketRequest: CreateSupportTicketRequest,
+  options?: RequestInit,
+): Promise<SupportTicket> => {
+  return customFetch<SupportTicket>(getCreateSupportTicketUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createSupportTicketRequest),
+  });
+};
+
+export const getCreateSupportTicketMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSupportTicket>>,
+    TError,
+    { data: BodyType<CreateSupportTicketRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createSupportTicket>>,
+  TError,
+  { data: BodyType<CreateSupportTicketRequest> },
+  TContext
+> => {
+  const mutationKey = ["createSupportTicket"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createSupportTicket>>,
+    { data: BodyType<CreateSupportTicketRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createSupportTicket(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateSupportTicketMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createSupportTicket>>
+>;
+export type CreateSupportTicketMutationBody =
+  BodyType<CreateSupportTicketRequest>;
+export type CreateSupportTicketMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a support ticket
+ */
+export const useCreateSupportTicket = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSupportTicket>>,
+    TError,
+    { data: BodyType<CreateSupportTicketRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createSupportTicket>>,
+  TError,
+  { data: BodyType<CreateSupportTicketRequest> },
+  TContext
+> => {
+  return useMutation(getCreateSupportTicketMutationOptions(options));
+};
 
 /**
  * @summary Register a new user (sends OTP, does not create session)
  */
-export const SignupBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  referralCode: zod.string().nullish(),
-});
+export const getSignupUrl = () => {
+  return `/api/auth/signup`;
+};
 
-export const SignupResponse = zod
-  .object({
-    status: zod.enum(["otp_required"]),
-    email: zod.string(),
-    intent: zod.enum(["signup", "login"]),
-    expiresInSeconds: zod.number(),
-    message: zod.string(),
-  })
-  .describe(
-    "Returned by signup\/login\/resend-otp; client must call \/auth\/verify-otp with the code.",
-  );
+export const signup = async (
+  signupRequest: SignupRequest,
+  options?: RequestInit,
+): Promise<AuthOtpChallenge> => {
+  return customFetch<AuthOtpChallenge>(getSignupUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(signupRequest),
+  });
+};
+
+export const getSignupMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signup>>,
+    TError,
+    { data: BodyType<SignupRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof signup>>,
+  TError,
+  { data: BodyType<SignupRequest> },
+  TContext
+> => {
+  const mutationKey = ["signup"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof signup>>,
+    { data: BodyType<SignupRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return signup(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SignupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof signup>>
+>;
+export type SignupMutationBody = BodyType<SignupRequest>;
+export type SignupMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Register a new user (sends OTP, does not create session)
+ */
+export const useSignup = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof signup>>,
+    TError,
+    { data: BodyType<SignupRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof signup>>,
+  TError,
+  { data: BodyType<SignupRequest> },
+  TContext
+> => {
+  return useMutation(getSignupMutationOptions(options));
+};
 
 /**
  * @summary Log in with email and password (admins authenticate immediately, others receive an OTP)
  */
-export const LoginBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
-});
+export const getLoginUrl = () => {
+  return `/api/auth/login`;
+};
 
-export const LoginResponse = zod.union([
-  zod
-    .object({
-      user: zod
-        .object({
-          id: zod.string(),
-          username: zod.string(),
-          email: zod.string(),
-          fullName: zod.string(),
-          country: zod.string(),
-          kycVerified: zod.boolean(),
-          avatarUrl: zod.string().optional(),
-          createdAt: zod.string(),
-          selectedManagerId: zod.string().nullish(),
-          phone: zod.string().nullish(),
-          merchant: zod
-            .boolean()
-            .optional()
-            .describe("True when the user is an approved P2P merchant."),
-          moonpayEmail: zod
-            .string()
-            .nullish()
-            .describe(
-              "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-            ),
-          buyVerified: zod
-            .boolean()
-            .describe(
-              "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-            ),
-        })
-        .nullable(),
-      role: zod.enum(["user", "admin", "demo"]),
-      isDemo: zod.boolean(),
-      walletSkipped: zod
-        .boolean()
-        .describe(
-          "True when the user dismissed the mandatory connect-wallet interstitial.",
-        ),
-      isMerchant: zod
-        .boolean()
-        .describe("True when the user is an approved P2P merchant."),
-      merchantStatus: zod
-        .enum(["pending", "approved", "rejected"])
-        .nullable()
-        .describe(
-          "Status of the user's most recent P2P merchant application, or null when none has been submitted.",
-        ),
-    })
-    .and(
-      zod.object({
-        status: zod.enum(["authenticated"]),
-      }),
-    )
-    .and(
-      zod.object({
-        status: zod.enum(["authenticated"]),
-      }),
-    )
-    .describe(
-      "An authenticated session returned directly from \/auth\/login when the user is an admin.",
-    ),
-  zod
-    .object({
-      status: zod.enum(["otp_required"]),
-      email: zod.string(),
-      intent: zod.enum(["signup", "login"]),
-      expiresInSeconds: zod.number(),
-      message: zod.string(),
-    })
-    .describe(
-      "Returned by signup\/login\/resend-otp; client must call \/auth\/verify-otp with the code.",
-    ),
-]);
+export const login = async (
+  loginRequest: LoginRequest,
+  options?: RequestInit,
+): Promise<LoginResult> => {
+  return customFetch<LoginResult>(getLoginUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(loginRequest),
+  });
+};
+
+export const getLoginMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: BodyType<LoginRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: BodyType<LoginRequest> },
+  TContext
+> => {
+  const mutationKey = ["login"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof login>>,
+    { data: BodyType<LoginRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return login(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof login>>
+>;
+export type LoginMutationBody = BodyType<LoginRequest>;
+export type LoginMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Log in with email and password (admins authenticate immediately, others receive an OTP)
+ */
+export const useLogin = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: BodyType<LoginRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: BodyType<LoginRequest> },
+  TContext
+> => {
+  return useMutation(getLoginMutationOptions(options));
+};
 
 /**
  * @summary Public — whether the admin account has been seeded from environment secrets
  */
-export const GetAdminProvisioningStatusResponse = zod.object({
-  provisioned: zod
-    .boolean()
-    .describe(
-      "True when ADMIN_EMAIL and ADMIN_PASSWORD secrets are set and the admin account has been seeded.",
-    ),
-});
+export const getGetAdminProvisioningStatusUrl = () => {
+  return `/api/admin/provisioning-status`;
+};
+
+export const getAdminProvisioningStatus = async (
+  options?: RequestInit,
+): Promise<AdminProvisioningStatus> => {
+  return customFetch<AdminProvisioningStatus>(
+    getGetAdminProvisioningStatusUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAdminProvisioningStatusQueryKey = () => {
+  return [`/api/admin/provisioning-status`] as const;
+};
+
+export const getGetAdminProvisioningStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminProvisioningStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminProvisioningStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminProvisioningStatusQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminProvisioningStatus>>
+  > = ({ signal }) => getAdminProvisioningStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminProvisioningStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminProvisioningStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminProvisioningStatus>>
+>;
+export type GetAdminProvisioningStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Public — whether the admin account has been seeded from environment secrets
+ */
+
+export function useGetAdminProvisioningStatus<
+  TData = Awaited<ReturnType<typeof getAdminProvisioningStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminProvisioningStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminProvisioningStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Verify a 6-digit OTP and complete the auth flow
  */
-export const verifyOtpBodyCodeMin = 6;
-export const verifyOtpBodyCodeMax = 6;
+export const getVerifyOtpUrl = () => {
+  return `/api/auth/verify-otp`;
+};
 
-export const VerifyOtpBody = zod.object({
-  email: zod.string(),
-  code: zod.string().min(verifyOtpBodyCodeMin).max(verifyOtpBodyCodeMax),
-});
+export const verifyOtp = async (
+  verifyOtpRequest: VerifyOtpRequest,
+  options?: RequestInit,
+): Promise<AuthSession> => {
+  return customFetch<AuthSession>(getVerifyOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(verifyOtpRequest),
+  });
+};
 
-export const VerifyOtpResponse = zod.object({
-  user: zod
-    .object({
-      id: zod.string(),
-      username: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      country: zod.string(),
-      kycVerified: zod.boolean(),
-      avatarUrl: zod.string().optional(),
-      createdAt: zod.string(),
-      selectedManagerId: zod.string().nullish(),
-      phone: zod.string().nullish(),
-      merchant: zod
-        .boolean()
-        .optional()
-        .describe("True when the user is an approved P2P merchant."),
-      moonpayEmail: zod
-        .string()
-        .nullish()
-        .describe(
-          "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-        ),
-      buyVerified: zod
-        .boolean()
-        .describe(
-          "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-        ),
-    })
-    .nullable(),
-  role: zod.enum(["user", "admin", "demo"]),
-  isDemo: zod.boolean(),
-  walletSkipped: zod
-    .boolean()
-    .describe(
-      "True when the user dismissed the mandatory connect-wallet interstitial.",
-    ),
-  isMerchant: zod
-    .boolean()
-    .describe("True when the user is an approved P2P merchant."),
-  merchantStatus: zod
-    .enum(["pending", "approved", "rejected"])
-    .nullable()
-    .describe(
-      "Status of the user's most recent P2P merchant application, or null when none has been submitted.",
-    ),
-});
+export const getVerifyOtpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyOtp>>,
+    TError,
+    { data: BodyType<VerifyOtpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyOtp>>,
+  TError,
+  { data: BodyType<VerifyOtpRequest> },
+  TContext
+> => {
+  const mutationKey = ["verifyOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyOtp>>,
+    { data: BodyType<VerifyOtpRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return verifyOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VerifyOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verifyOtp>>
+>;
+export type VerifyOtpMutationBody = BodyType<VerifyOtpRequest>;
+export type VerifyOtpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify a 6-digit OTP and complete the auth flow
+ */
+export const useVerifyOtp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyOtp>>,
+    TError,
+    { data: BodyType<VerifyOtpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof verifyOtp>>,
+  TError,
+  { data: BodyType<VerifyOtpRequest> },
+  TContext
+> => {
+  return useMutation(getVerifyOtpMutationOptions(options));
+};
 
 /**
  * @summary Generate and resend a fresh OTP for a pending challenge
  */
-export const ResendOtpBody = zod.object({
-  email: zod.string(),
-});
+export const getResendOtpUrl = () => {
+  return `/api/auth/resend-otp`;
+};
 
-export const ResendOtpResponse = zod
-  .object({
-    status: zod.enum(["otp_required"]),
-    email: zod.string(),
-    intent: zod.enum(["signup", "login"]),
-    expiresInSeconds: zod.number(),
-    message: zod.string(),
-  })
-  .describe(
-    "Returned by signup\/login\/resend-otp; client must call \/auth\/verify-otp with the code.",
-  );
+export const resendOtp = async (
+  resendOtpRequest: ResendOtpRequest,
+  options?: RequestInit,
+): Promise<AuthOtpChallenge> => {
+  return customFetch<AuthOtpChallenge>(getResendOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(resendOtpRequest),
+  });
+};
+
+export const getResendOtpMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resendOtp>>,
+    TError,
+    { data: BodyType<ResendOtpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resendOtp>>,
+  TError,
+  { data: BodyType<ResendOtpRequest> },
+  TContext
+> => {
+  const mutationKey = ["resendOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resendOtp>>,
+    { data: BodyType<ResendOtpRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return resendOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResendOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resendOtp>>
+>;
+export type ResendOtpMutationBody = BodyType<ResendOtpRequest>;
+export type ResendOtpMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate and resend a fresh OTP for a pending challenge
+ */
+export const useResendOtp = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resendOtp>>,
+    TError,
+    { data: BodyType<ResendOtpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof resendOtp>>,
+  TError,
+  { data: BodyType<ResendOtpRequest> },
+  TContext
+> => {
+  return useMutation(getResendOtpMutationOptions(options));
+};
 
 /**
  * @summary Mark the wallet-connect interstitial as skipped for this user
  */
-export const SkipWalletConnectResponse = zod.object({
-  user: zod
-    .object({
-      id: zod.string(),
-      username: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      country: zod.string(),
-      kycVerified: zod.boolean(),
-      avatarUrl: zod.string().optional(),
-      createdAt: zod.string(),
-      selectedManagerId: zod.string().nullish(),
-      phone: zod.string().nullish(),
-      merchant: zod
-        .boolean()
-        .optional()
-        .describe("True when the user is an approved P2P merchant."),
-      moonpayEmail: zod
-        .string()
-        .nullish()
-        .describe(
-          "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-        ),
-      buyVerified: zod
-        .boolean()
-        .describe(
-          "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-        ),
-    })
-    .nullable(),
-  role: zod.enum(["user", "admin", "demo"]),
-  isDemo: zod.boolean(),
-  walletSkipped: zod
-    .boolean()
-    .describe(
-      "True when the user dismissed the mandatory connect-wallet interstitial.",
-    ),
-  isMerchant: zod
-    .boolean()
-    .describe("True when the user is an approved P2P merchant."),
-  merchantStatus: zod
-    .enum(["pending", "approved", "rejected"])
-    .nullable()
-    .describe(
-      "Status of the user's most recent P2P merchant application, or null when none has been submitted.",
-    ),
-});
+export const getSkipWalletConnectUrl = () => {
+  return `/api/auth/skip-wallet`;
+};
+
+export const skipWalletConnect = async (
+  options?: RequestInit,
+): Promise<AuthSession> => {
+  return customFetch<AuthSession>(getSkipWalletConnectUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getSkipWalletConnectMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof skipWalletConnect>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof skipWalletConnect>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["skipWalletConnect"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof skipWalletConnect>>,
+    void
+  > = () => {
+    return skipWalletConnect(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SkipWalletConnectMutationResult = NonNullable<
+  Awaited<ReturnType<typeof skipWalletConnect>>
+>;
+
+export type SkipWalletConnectMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark the wallet-connect interstitial as skipped for this user
+ */
+export const useSkipWalletConnect = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof skipWalletConnect>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof skipWalletConnect>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getSkipWalletConnectMutationOptions(options));
+};
 
 /**
  * @summary Log out current session
  */
-export const LogoutResponse = zod.object({
-  success: zod.boolean(),
-  message: zod.string(),
-});
+export const getLogoutUrl = () => {
+  return `/api/auth/logout`;
+};
+
+export const logout = async (options?: RequestInit): Promise<ActionResult> => {
+  return customFetch<ActionResult>(getLogoutUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getLogoutMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof logout>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof logout>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["logout"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof logout>>,
+    void
+  > = () => {
+    return logout(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LogoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof logout>>
+>;
+
+export type LogoutMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Log out current session
+ */
+export const useLogout = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof logout>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof logout>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getLogoutMutationOptions(options));
+};
 
 /**
  * @summary Get current authenticated session (or null)
  */
-export const GetSessionResponse = zod.object({
-  user: zod
-    .object({
-      id: zod.string(),
-      username: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      country: zod.string(),
-      kycVerified: zod.boolean(),
-      avatarUrl: zod.string().optional(),
-      createdAt: zod.string(),
-      selectedManagerId: zod.string().nullish(),
-      phone: zod.string().nullish(),
-      merchant: zod
-        .boolean()
-        .optional()
-        .describe("True when the user is an approved P2P merchant."),
-      moonpayEmail: zod
-        .string()
-        .nullish()
-        .describe(
-          "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-        ),
-      buyVerified: zod
-        .boolean()
-        .describe(
-          "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-        ),
-    })
-    .nullable(),
-  role: zod.enum(["user", "admin", "demo"]),
-  isDemo: zod.boolean(),
-  walletSkipped: zod
-    .boolean()
-    .describe(
-      "True when the user dismissed the mandatory connect-wallet interstitial.",
-    ),
-  isMerchant: zod
-    .boolean()
-    .describe("True when the user is an approved P2P merchant."),
-  merchantStatus: zod
-    .enum(["pending", "approved", "rejected"])
-    .nullable()
-    .describe(
-      "Status of the user's most recent P2P merchant application, or null when none has been submitted.",
-    ),
-});
+export const getGetSessionUrl = () => {
+  return `/api/auth/session`;
+};
+
+export const getSession = async (
+  options?: RequestInit,
+): Promise<AuthSession> => {
+  return customFetch<AuthSession>(getGetSessionUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSessionQueryKey = () => {
+  return [`/api/auth/session`] as const;
+};
+
+export const getGetSessionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSession>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSession>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSessionQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSession>>> = ({
+    signal,
+  }) => getSession({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSession>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSessionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSession>>
+>;
+export type GetSessionQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current authenticated session (or null)
+ */
+
+export function useGetSession<
+  TData = Awaited<ReturnType<typeof getSession>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSession>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSessionQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Start a fresh demo session (no signup needed)
  */
-export const StartDemoSessionResponse = zod.object({
-  user: zod
-    .object({
-      id: zod.string(),
-      username: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      country: zod.string(),
-      kycVerified: zod.boolean(),
-      avatarUrl: zod.string().optional(),
-      createdAt: zod.string(),
-      selectedManagerId: zod.string().nullish(),
-      phone: zod.string().nullish(),
-      merchant: zod
-        .boolean()
-        .optional()
-        .describe("True when the user is an approved P2P merchant."),
-      moonpayEmail: zod
-        .string()
-        .nullish()
-        .describe(
-          "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-        ),
-      buyVerified: zod
-        .boolean()
-        .describe(
-          "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-        ),
-    })
-    .nullable(),
-  role: zod.enum(["user", "admin", "demo"]),
-  isDemo: zod.boolean(),
-  walletSkipped: zod
-    .boolean()
-    .describe(
-      "True when the user dismissed the mandatory connect-wallet interstitial.",
-    ),
-  isMerchant: zod
-    .boolean()
-    .describe("True when the user is an approved P2P merchant."),
-  merchantStatus: zod
-    .enum(["pending", "approved", "rejected"])
-    .nullable()
-    .describe(
-      "Status of the user's most recent P2P merchant application, or null when none has been submitted.",
-    ),
-});
+export const getStartDemoSessionUrl = () => {
+  return `/api/auth/demo`;
+};
+
+export const startDemoSession = async (
+  options?: RequestInit,
+): Promise<AuthSession> => {
+  return customFetch<AuthSession>(getStartDemoSessionUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getStartDemoSessionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof startDemoSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof startDemoSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["startDemoSession"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof startDemoSession>>,
+    void
+  > = () => {
+    return startDemoSession(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StartDemoSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof startDemoSession>>
+>;
+
+export type StartDemoSessionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Start a fresh demo session (no signup needed)
+ */
+export const useStartDemoSession = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof startDemoSession>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof startDemoSession>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getStartDemoSessionMutationOptions(options));
+};
 
 /**
  * @summary Get current user KYC status
  */
-export const GetKycStatusResponse = zod.object({
-  userId: zod.string(),
-  status: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  idType: zod.string().nullish(),
-  idNumber: zod.string().nullish(),
-  addressLine1: zod.string().nullish(),
-  city: zod.string().nullish(),
-  country: zod.string().nullish(),
-  rejectionReason: zod.string().nullish(),
-  submittedAt: zod.string().nullish(),
-  decidedAt: zod.string().nullish(),
-});
+export const getGetKycStatusUrl = () => {
+  return `/api/kyc`;
+};
+
+export const getKycStatus = async (
+  options?: RequestInit,
+): Promise<KycRecord> => {
+  return customFetch<KycRecord>(getGetKycStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetKycStatusQueryKey = () => {
+  return [`/api/kyc`] as const;
+};
+
+export const getGetKycStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getKycStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getKycStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetKycStatusQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getKycStatus>>> = ({
+    signal,
+  }) => getKycStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getKycStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetKycStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getKycStatus>>
+>;
+export type GetKycStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current user KYC status
+ */
+
+export function useGetKycStatus<
+  TData = Awaited<ReturnType<typeof getKycStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getKycStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetKycStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Submit KYC documents
  */
-export const SubmitKycBody = zod.object({
-  idType: zod.enum(["passport", "drivers_license", "national_id"]),
-  idNumber: zod.string(),
-  addressLine1: zod.string(),
-  city: zod.string(),
-  country: zod.string(),
-});
+export const getSubmitKycUrl = () => {
+  return `/api/kyc`;
+};
 
-export const SubmitKycResponse = zod.object({
-  userId: zod.string(),
-  status: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  idType: zod.string().nullish(),
-  idNumber: zod.string().nullish(),
-  addressLine1: zod.string().nullish(),
-  city: zod.string().nullish(),
-  country: zod.string().nullish(),
-  rejectionReason: zod.string().nullish(),
-  submittedAt: zod.string().nullish(),
-  decidedAt: zod.string().nullish(),
-});
+export const submitKyc = async (
+  kycSubmissionRequest: KycSubmissionRequest,
+  options?: RequestInit,
+): Promise<KycRecord> => {
+  return customFetch<KycRecord>(getSubmitKycUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(kycSubmissionRequest),
+  });
+};
+
+export const getSubmitKycMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitKyc>>,
+    TError,
+    { data: BodyType<KycSubmissionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitKyc>>,
+  TError,
+  { data: BodyType<KycSubmissionRequest> },
+  TContext
+> => {
+  const mutationKey = ["submitKyc"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitKyc>>,
+    { data: BodyType<KycSubmissionRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitKyc(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitKycMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitKyc>>
+>;
+export type SubmitKycMutationBody = BodyType<KycSubmissionRequest>;
+export type SubmitKycMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit KYC documents
+ */
+export const useSubmitKyc = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitKyc>>,
+    TError,
+    { data: BodyType<KycSubmissionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitKyc>>,
+  TError,
+  { data: BodyType<KycSubmissionRequest> },
+  TContext
+> => {
+  return useMutation(getSubmitKycMutationOptions(options));
+};
 
 /**
  * @summary List the current user's withdrawals
  */
-export const GetWithdrawalsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
-export const GetWithdrawalsResponse = zod.array(GetWithdrawalsResponseItem);
+export const getGetWithdrawalsUrl = () => {
+  return `/api/withdrawals`;
+};
+
+export const getWithdrawals = async (
+  options?: RequestInit,
+): Promise<Withdrawal[]> => {
+  return customFetch<Withdrawal[]>(getGetWithdrawalsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWithdrawalsQueryKey = () => {
+  return [`/api/withdrawals`] as const;
+};
+
+export const getGetWithdrawalsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWithdrawals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWithdrawalsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWithdrawals>>> = ({
+    signal,
+  }) => getWithdrawals({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawals>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWithdrawalsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWithdrawals>>
+>;
+export type GetWithdrawalsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the current user's withdrawals
+ */
+
+export function useGetWithdrawals<
+  TData = Awaited<ReturnType<typeof getWithdrawals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWithdrawalsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Request a new withdrawal (enters pending state)
  */
-export const requestWithdrawalBodyAmountMin = 0.000001;
+export const getRequestWithdrawalUrl = () => {
+  return `/api/withdrawals`;
+};
 
-export const RequestWithdrawalBody = zod.object({
-  amount: zod.number().min(requestWithdrawalBodyAmountMin),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  sourceWalletId: zod
-    .string()
-    .nullish()
-    .describe(
-      "When supplied, the withdrawal is funded by directly broadcasting\nan on-chain transfer from this connected external wallet to the\ndestination address. The server signs and broadcasts via\nethers.js, marks the withdrawal completed immediately, and\nstores the resulting tx hash on the withdrawal record. When\nnull\/omitted, the withdrawal goes through the standard pending\nadmin-review flow against the user's main platform wallet.\n",
-    ),
-});
+export const requestWithdrawal = async (
+  withdrawalRequest: WithdrawalRequest,
+  options?: RequestInit,
+): Promise<Withdrawal> => {
+  return customFetch<Withdrawal>(getRequestWithdrawalUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(withdrawalRequest),
+  });
+};
 
-export const RequestWithdrawalResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
+export const getRequestWithdrawalMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestWithdrawal>>,
+    TError,
+    { data: BodyType<WithdrawalRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestWithdrawal>>,
+  TError,
+  { data: BodyType<WithdrawalRequest> },
+  TContext
+> => {
+  const mutationKey = ["requestWithdrawal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestWithdrawal>>,
+    { data: BodyType<WithdrawalRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return requestWithdrawal(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RequestWithdrawalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestWithdrawal>>
+>;
+export type RequestWithdrawalMutationBody = BodyType<WithdrawalRequest>;
+export type RequestWithdrawalMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Request a new withdrawal (enters pending state)
+ */
+export const useRequestWithdrawal = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestWithdrawal>>,
+    TError,
+    { data: BodyType<WithdrawalRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof requestWithdrawal>>,
+  TError,
+  { data: BodyType<WithdrawalRequest> },
+  TContext
+> => {
+  return useMutation(getRequestWithdrawalMutationOptions(options));
+};
 
 /**
  * @summary List the current user's deposits
  */
-export const GetDepositsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer", "card"]),
-  status: zod.enum(["pending", "completed", "failed"]),
-  reference: zod.string().nullish(),
-  createdAt: zod.string(),
-});
-export const GetDepositsResponse = zod.array(GetDepositsResponseItem);
+export const getGetDepositsUrl = () => {
+  return `/api/deposits`;
+};
+
+export const getDeposits = async (
+  options?: RequestInit,
+): Promise<Deposit[]> => {
+  return customFetch<Deposit[]>(getGetDepositsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDepositsQueryKey = () => {
+  return [`/api/deposits`] as const;
+};
+
+export const getGetDepositsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDeposits>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDeposits>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDepositsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeposits>>> = ({
+    signal,
+  }) => getDeposits({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDeposits>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDepositsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDeposits>>
+>;
+export type GetDepositsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the current user's deposits
+ */
+
+export function useGetDeposits<
+  TData = Awaited<ReturnType<typeof getDeposits>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDeposits>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDepositsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Record a new deposit
  */
-export const createDepositBodyAmountMin = 0.000001;
+export const getCreateDepositUrl = () => {
+  return `/api/deposits`;
+};
 
-export const CreateDepositBody = zod.object({
-  amount: zod.number().min(createDepositBodyAmountMin),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer", "card"]),
-  reference: zod.string().nullish(),
-  externalWalletId: zod
-    .string()
-    .nullish()
-    .describe(
-      "When method is crypto_wallet and the funds are sent from a connected external wallet, the id of that wallet.",
-    ),
-  txHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain transaction hash recorded after a successful external_wallet send.",
-    ),
-});
+export const createDeposit = async (
+  depositRequest: DepositRequest,
+  options?: RequestInit,
+): Promise<Deposit> => {
+  return customFetch<Deposit>(getCreateDepositUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(depositRequest),
+  });
+};
 
-export const CreateDepositResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer", "card"]),
-  status: zod.enum(["pending", "completed", "failed"]),
-  reference: zod.string().nullish(),
-  createdAt: zod.string(),
-});
+export const getCreateDepositMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDeposit>>,
+    TError,
+    { data: BodyType<DepositRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDeposit>>,
+  TError,
+  { data: BodyType<DepositRequest> },
+  TContext
+> => {
+  const mutationKey = ["createDeposit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDeposit>>,
+    { data: BodyType<DepositRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createDeposit(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDepositMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDeposit>>
+>;
+export type CreateDepositMutationBody = BodyType<DepositRequest>;
+export type CreateDepositMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Record a new deposit
+ */
+export const useCreateDeposit = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDeposit>>,
+    TError,
+    { data: BodyType<DepositRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createDeposit>>,
+  TError,
+  { data: BodyType<DepositRequest> },
+  TContext
+> => {
+  return useMutation(getCreateDepositMutationOptions(options));
+};
 
 /**
  * @summary List linked bank accounts
  */
-export const GetBankAccountsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  isDefault: zod
-    .boolean()
-    .optional()
-    .describe("True when this is the user's default payout bank account."),
-  fiatBalance: zod
-    .number()
-    .describe(
-      "User-reported (or admin-set) available fiat balance for this bank account.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .describe(
-      "ISO currency code for the fiat balance (defaults to the bank's currency).",
-    ),
-  createdAt: zod.string(),
-});
-export const GetBankAccountsResponse = zod.array(GetBankAccountsResponseItem);
+export const getGetBankAccountsUrl = () => {
+  return `/api/banks`;
+};
+
+export const getBankAccounts = async (
+  options?: RequestInit,
+): Promise<BankAccount[]> => {
+  return customFetch<BankAccount[]>(getGetBankAccountsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBankAccountsQueryKey = () => {
+  return [`/api/banks`] as const;
+};
+
+export const getGetBankAccountsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBankAccounts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBankAccounts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBankAccountsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankAccounts>>> = ({
+    signal,
+  }) => getBankAccounts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBankAccounts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBankAccountsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBankAccounts>>
+>;
+export type GetBankAccountsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List linked bank accounts
+ */
+
+export function useGetBankAccounts<
+  TData = Awaited<ReturnType<typeof getBankAccounts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBankAccounts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBankAccountsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Link a new bank account
  */
-export const LinkBankAccountBody = zod.object({
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  accountNumber: zod.string(),
-  routingNumber: zod.string(),
-  currency: zod.string(),
-});
+export const getLinkBankAccountUrl = () => {
+  return `/api/banks`;
+};
 
-export const LinkBankAccountResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  isDefault: zod
-    .boolean()
-    .optional()
-    .describe("True when this is the user's default payout bank account."),
-  fiatBalance: zod
-    .number()
-    .describe(
-      "User-reported (or admin-set) available fiat balance for this bank account.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .describe(
-      "ISO currency code for the fiat balance (defaults to the bank's currency).",
-    ),
-  createdAt: zod.string(),
-});
+export const linkBankAccount = async (
+  linkBankRequest: LinkBankRequest,
+  options?: RequestInit,
+): Promise<BankAccount> => {
+  return customFetch<BankAccount>(getLinkBankAccountUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(linkBankRequest),
+  });
+};
+
+export const getLinkBankAccountMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    TError,
+    { data: BodyType<LinkBankRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof linkBankAccount>>,
+  TError,
+  { data: BodyType<LinkBankRequest> },
+  TContext
+> => {
+  const mutationKey = ["linkBankAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    { data: BodyType<LinkBankRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return linkBankAccount(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LinkBankAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof linkBankAccount>>
+>;
+export type LinkBankAccountMutationBody = BodyType<LinkBankRequest>;
+export type LinkBankAccountMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Link a new bank account
+ */
+export const useLinkBankAccount = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof linkBankAccount>>,
+    TError,
+    { data: BodyType<LinkBankRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof linkBankAccount>>,
+  TError,
+  { data: BodyType<LinkBankRequest> },
+  TContext
+> => {
+  return useMutation(getLinkBankAccountMutationOptions(options));
+};
 
 /**
  * @summary Update self-reported fiat balance for a linked bank account
  */
-export const UpdateOwnBankAccountParams = zod.object({
-  bankId: zod.coerce.string(),
-});
+export const getUpdateOwnBankAccountUrl = (bankId: string) => {
+  return `/api/banks/${bankId}`;
+};
 
-export const UpdateOwnBankAccountBody = zod.object({
-  fiatBalance: zod
-    .number()
-    .optional()
-    .describe("User self-reported fiat balance for this account."),
-  fiatCurrency: zod
-    .string()
-    .optional()
-    .describe(
-      "Optional override for the fiat currency (defaults to the bank's currency).",
-    ),
-});
+export const updateOwnBankAccount = async (
+  bankId: string,
+  updateOwnBankAccountRequest: UpdateOwnBankAccountRequest,
+  options?: RequestInit,
+): Promise<BankAccount> => {
+  return customFetch<BankAccount>(getUpdateOwnBankAccountUrl(bankId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateOwnBankAccountRequest),
+  });
+};
 
-export const UpdateOwnBankAccountResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  isDefault: zod
-    .boolean()
-    .optional()
-    .describe("True when this is the user's default payout bank account."),
-  fiatBalance: zod
-    .number()
-    .describe(
-      "User-reported (or admin-set) available fiat balance for this bank account.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .describe(
-      "ISO currency code for the fiat balance (defaults to the bank's currency).",
-    ),
-  createdAt: zod.string(),
-});
+export const getUpdateOwnBankAccountMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateOwnBankAccount>>,
+    TError,
+    { bankId: string; data: BodyType<UpdateOwnBankAccountRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateOwnBankAccount>>,
+  TError,
+  { bankId: string; data: BodyType<UpdateOwnBankAccountRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateOwnBankAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateOwnBankAccount>>,
+    { bankId: string; data: BodyType<UpdateOwnBankAccountRequest> }
+  > = (props) => {
+    const { bankId, data } = props ?? {};
+
+    return updateOwnBankAccount(bankId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateOwnBankAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateOwnBankAccount>>
+>;
+export type UpdateOwnBankAccountMutationBody =
+  BodyType<UpdateOwnBankAccountRequest>;
+export type UpdateOwnBankAccountMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update self-reported fiat balance for a linked bank account
+ */
+export const useUpdateOwnBankAccount = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateOwnBankAccount>>,
+    TError,
+    { bankId: string; data: BodyType<UpdateOwnBankAccountRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateOwnBankAccount>>,
+  TError,
+  { bankId: string; data: BodyType<UpdateOwnBankAccountRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateOwnBankAccountMutationOptions(options));
+};
 
 /**
  * @summary Update fields on the current user's own profile
  */
-export const UpdateOwnProfileBody = zod.object({
-  moonpayEmail: zod
-    .string()
-    .nullish()
-    .describe(
-      "User's MoonPay account email (use empty string or null to unlink).",
-    ),
-});
+export const getUpdateOwnProfileUrl = () => {
+  return `/api/auth/profile`;
+};
 
-export const UpdateOwnProfileResponse = zod.object({
-  id: zod.string(),
-  username: zod.string(),
-  email: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  kycVerified: zod.boolean(),
-  avatarUrl: zod.string().optional(),
-  createdAt: zod.string(),
-  selectedManagerId: zod.string().nullish(),
-  phone: zod.string().nullish(),
-  merchant: zod
-    .boolean()
-    .optional()
-    .describe("True when the user is an approved P2P merchant."),
-  moonpayEmail: zod
-    .string()
-    .nullish()
-    .describe(
-      "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-    ),
-  buyVerified: zod
-    .boolean()
-    .describe(
-      "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-    ),
-});
+export const updateOwnProfile = async (
+  updateOwnProfileRequest: UpdateOwnProfileRequest,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getUpdateOwnProfileUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateOwnProfileRequest),
+  });
+};
+
+export const getUpdateOwnProfileMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateOwnProfile>>,
+    TError,
+    { data: BodyType<UpdateOwnProfileRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateOwnProfile>>,
+  TError,
+  { data: BodyType<UpdateOwnProfileRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateOwnProfile"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateOwnProfile>>,
+    { data: BodyType<UpdateOwnProfileRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateOwnProfile(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateOwnProfileMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateOwnProfile>>
+>;
+export type UpdateOwnProfileMutationBody = BodyType<UpdateOwnProfileRequest>;
+export type UpdateOwnProfileMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update fields on the current user's own profile
+ */
+export const useUpdateOwnProfile = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateOwnProfile>>,
+    TError,
+    { data: BodyType<UpdateOwnProfileRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateOwnProfile>>,
+  TError,
+  { data: BodyType<UpdateOwnProfileRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateOwnProfileMutationOptions(options));
+};
 
 /**
  * @summary Build a MoonPay hosted-checkout URL for a Buy Crypto flow
  */
+export const getInitiateMoonpayBuyUrl = () => {
+  return `/api/moonpay/initiate`;
+};
 
-export const InitiateMoonpayBuyBody = zod.object({
-  assetSymbol: zod
-    .string()
-    .describe("Crypto asset symbol to purchase (e.g. BTC, ETH, USDT)."),
-  fiatAmount: zod
-    .number()
-    .min(1)
-    .describe("Fiat amount the user wants to spend."),
-  fiatCurrency: zod.string().describe("Fiat currency code (e.g. USD, EUR)."),
-  destinationAddress: zod
-    .string()
-    .describe("Wallet address that should receive the purchased crypto."),
-  destinationKind: zod
-    .enum(["platform", "external", "custom"])
-    .describe("Source of the destination address."),
-});
+export const initiateMoonpayBuy = async (
+  moonpayInitiateRequest: MoonpayInitiateRequest,
+  options?: RequestInit,
+): Promise<MoonpayInitiateResponse> => {
+  return customFetch<MoonpayInitiateResponse>(getInitiateMoonpayBuyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(moonpayInitiateRequest),
+  });
+};
 
-export const InitiateMoonpayBuyResponse = zod.object({
-  url: zod
-    .string()
-    .describe("Hosted MoonPay checkout URL the user should be redirected to."),
-  sandbox: zod
-    .boolean()
-    .describe(
-      "True when the URL points at MoonPay sandbox (no live API key configured).",
-    ),
-  signed: zod
-    .boolean()
-    .describe(
-      "True when the URL was HMAC-signed using the configured MoonPay secret.",
-    ),
-  configured: zod
-    .boolean()
-    .describe("True when MOONPAY_API_KEY is configured server-side."),
-  autoFilled: zod
-    .boolean()
-    .describe(
-      "True when user identity (email\/name) was auto-filled into the URL.",
-    ),
-  notice: zod
-    .string()
-    .nullish()
-    .describe("Optional human-readable notice to surface in the dialog."),
-});
+export const getInitiateMoonpayBuyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiateMoonpayBuy>>,
+    TError,
+    { data: BodyType<MoonpayInitiateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof initiateMoonpayBuy>>,
+  TError,
+  { data: BodyType<MoonpayInitiateRequest> },
+  TContext
+> => {
+  const mutationKey = ["initiateMoonpayBuy"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof initiateMoonpayBuy>>,
+    { data: BodyType<MoonpayInitiateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return initiateMoonpayBuy(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type InitiateMoonpayBuyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof initiateMoonpayBuy>>
+>;
+export type InitiateMoonpayBuyMutationBody = BodyType<MoonpayInitiateRequest>;
+export type InitiateMoonpayBuyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Build a MoonPay hosted-checkout URL for a Buy Crypto flow
+ */
+export const useInitiateMoonpayBuy = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiateMoonpayBuy>>,
+    TError,
+    { data: BodyType<MoonpayInitiateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof initiateMoonpayBuy>>,
+  TError,
+  { data: BodyType<MoonpayInitiateRequest> },
+  TContext
+> => {
+  return useMutation(getInitiateMoonpayBuyMutationOptions(options));
+};
 
 /**
  * @summary MoonPay transaction webhook (purchase completion events)
  */
-export const MoonpayWebhookBody = zod
-  .object({
-    type: zod
-      .string()
-      .describe(
-        'Event type, e.g. \"transaction_updated\" or \"transaction_completed\".',
-      ),
-    data: zod
-      .object({
-        id: zod.string(),
-        status: zod.string().describe("e.g. pending, completed, failed."),
-        walletAddress: zod.string().nullish(),
-        currency: zod
-          .object({
-            code: zod.string().optional(),
-          })
-          .nullish(),
-        cryptoTransactionId: zod.string().nullish(),
-        quoteCurrencyAmount: zod
-          .number()
-          .nullish()
-          .describe("Amount of crypto purchased."),
-        baseCurrencyAmount: zod
-          .number()
-          .nullish()
-          .describe("Fiat amount spent."),
-        baseCurrencyCode: zod.string().nullish(),
-        externalCustomerId: zod
-          .string()
-          .nullish()
-          .describe("Platform user id we passed in the checkout URL."),
-        externalTransactionId: zod
-          .string()
-          .nullish()
-          .describe(
-            "Server-generated id we passed at \/moonpay\/initiate; used to look up the original destination so the webhook only credits platform wallets when the user picked one.",
-          ),
-      })
-      .describe("The MoonPay transaction object."),
-  })
-  .describe("A subset of the MoonPay webhook payload we react to.");
+export const getMoonpayWebhookUrl = () => {
+  return `/api/moonpay/webhook`;
+};
 
-export const MoonpayWebhookResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const moonpayWebhook = async (
+  moonpayWebhookEvent: MoonpayWebhookEvent,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getMoonpayWebhookUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(moonpayWebhookEvent),
+  });
+};
+
+export const getMoonpayWebhookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof moonpayWebhook>>,
+    TError,
+    { data: BodyType<MoonpayWebhookEvent> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof moonpayWebhook>>,
+  TError,
+  { data: BodyType<MoonpayWebhookEvent> },
+  TContext
+> => {
+  const mutationKey = ["moonpayWebhook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof moonpayWebhook>>,
+    { data: BodyType<MoonpayWebhookEvent> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return moonpayWebhook(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MoonpayWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof moonpayWebhook>>
+>;
+export type MoonpayWebhookMutationBody = BodyType<MoonpayWebhookEvent>;
+export type MoonpayWebhookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary MoonPay transaction webhook (purchase completion events)
+ */
+export const useMoonpayWebhook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof moonpayWebhook>>,
+    TError,
+    { data: BodyType<MoonpayWebhookEvent> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof moonpayWebhook>>,
+  TError,
+  { data: BodyType<MoonpayWebhookEvent> },
+  TContext
+> => {
+  return useMutation(getMoonpayWebhookMutationOptions(options));
+};
 
 /**
  * @summary Current user's referral code, signups, and earnings
  */
-export const GetReferralInfoResponse = zod.object({
-  code: zod.string(),
-  link: zod.string(),
-  signups: zod.number(),
-  activeReferrals: zod.number(),
-  earnings: zod.number(),
-  currency: zod.string(),
-  programDays: zod.number(),
-  recent: zod.array(
-    zod.object({
-      id: zod.string(),
-      referredName: zod.string(),
-      joinedAt: zod.string(),
-      status: zod.enum(["pending", "active", "expired"]),
-      earned: zod.number(),
-    }),
-  ),
-});
+export const getGetReferralInfoUrl = () => {
+  return `/api/referrals`;
+};
+
+export const getReferralInfo = async (
+  options?: RequestInit,
+): Promise<ReferralInfo> => {
+  return customFetch<ReferralInfo>(getGetReferralInfoUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetReferralInfoQueryKey = () => {
+  return [`/api/referrals`] as const;
+};
+
+export const getGetReferralInfoQueryOptions = <
+  TData = Awaited<ReturnType<typeof getReferralInfo>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralInfo>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetReferralInfoQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferralInfo>>> = ({
+    signal,
+  }) => getReferralInfo({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralInfo>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetReferralInfoQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getReferralInfo>>
+>;
+export type GetReferralInfoQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Current user's referral code, signups, and earnings
+ */
+
+export function useGetReferralInfo<
+  TData = Awaited<ReturnType<typeof getReferralInfo>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getReferralInfo>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetReferralInfoQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Admin dashboard summary stats
  */
-export const GetAdminStatsResponse = zod.object({
-  totalUsers: zod.number(),
-  totalDeposits: zod.number(),
-  totalWithdrawals: zod.number(),
-  pendingWithdrawals: zod.number(),
-  pendingKyc: zod.number(),
-  activeTrades: zod.number(),
-  currency: zod.string(),
-});
+export const getGetAdminStatsUrl = () => {
+  return `/api/admin/stats`;
+};
+
+export const getAdminStats = async (
+  options?: RequestInit,
+): Promise<AdminStats> => {
+  return customFetch<AdminStats>(getGetAdminStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminStatsQueryKey = () => {
+  return [`/api/admin/stats`] as const;
+};
+
+export const getGetAdminStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminStats>>> = ({
+    signal,
+  }) => getAdminStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminStats>>
+>;
+export type GetAdminStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Admin dashboard summary stats
+ */
+
+export function useGetAdminStats<
+  TData = Awaited<ReturnType<typeof getAdminStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List all platform users (admin only)
  */
-export const GetAdminUsersResponseItem = zod.object({
-  id: zod.string(),
-  email: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  role: zod.enum(["user", "admin", "demo"]),
-  kycStatus: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  balance: zod.number(),
-  merchant: zod.boolean(),
-  tradingLocked: zod.boolean(),
-  accountFlag: zod
-    .string()
-    .nullish()
-    .describe(
-      'Admin-set risk flag (e.g. \"fraud_review\", \"watchlist\") shown across admin UIs.',
-    ),
-  suspended: zod
-    .boolean()
-    .describe("When true the user is read-only across the platform."),
-  disabled: zod
-    .boolean()
-    .describe("When true the user cannot authenticate at all."),
-  createdAt: zod.string(),
-});
-export const GetAdminUsersResponse = zod.array(GetAdminUsersResponseItem);
+export const getGetAdminUsersUrl = () => {
+  return `/api/admin/users`;
+};
+
+export const getAdminUsers = async (
+  options?: RequestInit,
+): Promise<AdminUserSummary[]> => {
+  return customFetch<AdminUserSummary[]>(getGetAdminUsersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminUsersQueryKey = () => {
+  return [`/api/admin/users`] as const;
+};
+
+export const getGetAdminUsersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminUsers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUsers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminUsersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminUsers>>> = ({
+    signal,
+  }) => getAdminUsers({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUsers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminUsersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminUsers>>
+>;
+export type GetAdminUsersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all platform users (admin only)
+ */
+
+export function useGetAdminUsers<
+  TData = Awaited<ReturnType<typeof getAdminUsers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUsers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminUsersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List all withdrawals (admin only)
  */
-export const GetAdminWithdrawalsQueryParams = zod.object({
-  status: zod
-    .enum([
-      "pending",
-      "awaiting_gas_fee",
-      "approved",
-      "rejected",
-      "completed",
-      "cancelled",
-      "expired",
-    ])
-    .optional(),
-});
+export const getGetAdminWithdrawalsUrl = (
+  params?: GetAdminWithdrawalsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
 
-export const GetAdminWithdrawalsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
-export const GetAdminWithdrawalsResponse = zod.array(
-  GetAdminWithdrawalsResponseItem,
-);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/withdrawals?${stringifiedParams}`
+    : `/api/admin/withdrawals`;
+};
+
+export const getAdminWithdrawals = async (
+  params?: GetAdminWithdrawalsParams,
+  options?: RequestInit,
+): Promise<Withdrawal[]> => {
+  return customFetch<Withdrawal[]>(getGetAdminWithdrawalsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminWithdrawalsQueryKey = (
+  params?: GetAdminWithdrawalsParams,
+) => {
+  return [`/api/admin/withdrawals`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAdminWithdrawalsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminWithdrawals>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAdminWithdrawalsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminWithdrawals>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminWithdrawalsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminWithdrawals>>
+  > = ({ signal }) =>
+    getAdminWithdrawals(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminWithdrawals>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminWithdrawalsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminWithdrawals>>
+>;
+export type GetAdminWithdrawalsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all withdrawals (admin only)
+ */
+
+export function useGetAdminWithdrawals<
+  TData = Awaited<ReturnType<typeof getAdminWithdrawals>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetAdminWithdrawalsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminWithdrawals>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminWithdrawalsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Approve or reject a pending withdrawal
  */
-export const DecideWithdrawalParams = zod.object({
-  withdrawalId: zod.coerce.string(),
-});
+export const getDecideWithdrawalUrl = (withdrawalId: string) => {
+  return `/api/admin/withdrawals/${withdrawalId}/decision`;
+};
 
-export const DecideWithdrawalBody = zod.object({
-  decision: zod.enum(["approve", "reject"]),
-  reason: zod.string().nullish(),
-});
+export const decideWithdrawal = async (
+  withdrawalId: string,
+  withdrawalDecisionRequest: WithdrawalDecisionRequest,
+  options?: RequestInit,
+): Promise<Withdrawal> => {
+  return customFetch<Withdrawal>(getDecideWithdrawalUrl(withdrawalId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(withdrawalDecisionRequest),
+  });
+};
 
-export const DecideWithdrawalResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
+export const getDecideWithdrawalMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideWithdrawal>>,
+    TError,
+    { withdrawalId: string; data: BodyType<WithdrawalDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof decideWithdrawal>>,
+  TError,
+  { withdrawalId: string; data: BodyType<WithdrawalDecisionRequest> },
+  TContext
+> => {
+  const mutationKey = ["decideWithdrawal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof decideWithdrawal>>,
+    { withdrawalId: string; data: BodyType<WithdrawalDecisionRequest> }
+  > = (props) => {
+    const { withdrawalId, data } = props ?? {};
+
+    return decideWithdrawal(withdrawalId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DecideWithdrawalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof decideWithdrawal>>
+>;
+export type DecideWithdrawalMutationBody = BodyType<WithdrawalDecisionRequest>;
+export type DecideWithdrawalMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve or reject a pending withdrawal
+ */
+export const useDecideWithdrawal = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideWithdrawal>>,
+    TError,
+    { withdrawalId: string; data: BodyType<WithdrawalDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof decideWithdrawal>>,
+  TError,
+  { withdrawalId: string; data: BodyType<WithdrawalDecisionRequest> },
+  TContext
+> => {
+  return useMutation(getDecideWithdrawalMutationOptions(options));
+};
 
 /**
  * @summary Approve or reject a KYC submission
  */
-export const DecideKycParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getDecideKycUrl = (userId: string) => {
+  return `/api/admin/kyc/${userId}/decision`;
+};
 
-export const DecideKycBody = zod.object({
-  decision: zod.enum(["approve", "reject"]),
-  reason: zod.string().nullish(),
-});
+export const decideKyc = async (
+  userId: string,
+  kycDecisionRequest: KycDecisionRequest,
+  options?: RequestInit,
+): Promise<KycRecord> => {
+  return customFetch<KycRecord>(getDecideKycUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(kycDecisionRequest),
+  });
+};
 
-export const DecideKycResponse = zod.object({
-  userId: zod.string(),
-  status: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  idType: zod.string().nullish(),
-  idNumber: zod.string().nullish(),
-  addressLine1: zod.string().nullish(),
-  city: zod.string().nullish(),
-  country: zod.string().nullish(),
-  rejectionReason: zod.string().nullish(),
-  submittedAt: zod.string().nullish(),
-  decidedAt: zod.string().nullish(),
-});
+export const getDecideKycMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideKyc>>,
+    TError,
+    { userId: string; data: BodyType<KycDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof decideKyc>>,
+  TError,
+  { userId: string; data: BodyType<KycDecisionRequest> },
+  TContext
+> => {
+  const mutationKey = ["decideKyc"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof decideKyc>>,
+    { userId: string; data: BodyType<KycDecisionRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return decideKyc(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DecideKycMutationResult = NonNullable<
+  Awaited<ReturnType<typeof decideKyc>>
+>;
+export type DecideKycMutationBody = BodyType<KycDecisionRequest>;
+export type DecideKycMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve or reject a KYC submission
+ */
+export const useDecideKyc = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideKyc>>,
+    TError,
+    { userId: string; data: BodyType<KycDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof decideKyc>>,
+  TError,
+  { userId: string; data: BodyType<KycDecisionRequest> },
+  TContext
+> => {
+  return useMutation(getDecideKycMutationOptions(options));
+};
 
 /**
  * @summary List all linked bank accounts across users (admin only)
  */
-export const GetAdminBanksResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  createdAt: zod.string(),
-});
-export const GetAdminBanksResponse = zod.array(GetAdminBanksResponseItem);
+export const getGetAdminBanksUrl = () => {
+  return `/api/admin/banks`;
+};
+
+export const getAdminBanks = async (
+  options?: RequestInit,
+): Promise<AdminBankSummary[]> => {
+  return customFetch<AdminBankSummary[]>(getGetAdminBanksUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminBanksQueryKey = () => {
+  return [`/api/admin/banks`] as const;
+};
+
+export const getGetAdminBanksQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminBanks>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBanks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminBanksQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBanks>>> = ({
+    signal,
+  }) => getAdminBanks({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBanks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminBanksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminBanks>>
+>;
+export type GetAdminBanksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all linked bank accounts across users (admin only)
+ */
+
+export function useGetAdminBanks<
+  TData = Awaited<ReturnType<typeof getAdminBanks>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBanks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminBanksQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Set the verified flag on a linked bank account
  */
-export const SetBankVerificationParams = zod.object({
-  bankId: zod.coerce.string(),
-});
+export const getSetBankVerificationUrl = (bankId: string) => {
+  return `/api/admin/banks/${bankId}/verification`;
+};
 
-export const SetBankVerificationBody = zod.object({
-  verified: zod.boolean(),
-});
+export const setBankVerification = async (
+  bankId: string,
+  bankVerificationRequest: BankVerificationRequest,
+  options?: RequestInit,
+): Promise<AdminBankSummary> => {
+  return customFetch<AdminBankSummary>(getSetBankVerificationUrl(bankId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bankVerificationRequest),
+  });
+};
 
-export const SetBankVerificationResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  createdAt: zod.string(),
-});
+export const getSetBankVerificationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setBankVerification>>,
+    TError,
+    { bankId: string; data: BodyType<BankVerificationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setBankVerification>>,
+  TError,
+  { bankId: string; data: BodyType<BankVerificationRequest> },
+  TContext
+> => {
+  const mutationKey = ["setBankVerification"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setBankVerification>>,
+    { bankId: string; data: BodyType<BankVerificationRequest> }
+  > = (props) => {
+    const { bankId, data } = props ?? {};
+
+    return setBankVerification(bankId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetBankVerificationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setBankVerification>>
+>;
+export type SetBankVerificationMutationBody = BodyType<BankVerificationRequest>;
+export type SetBankVerificationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Set the verified flag on a linked bank account
+ */
+export const useSetBankVerification = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setBankVerification>>,
+    TError,
+    { bankId: string; data: BodyType<BankVerificationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof setBankVerification>>,
+  TError,
+  { bankId: string; data: BodyType<BankVerificationRequest> },
+  TContext
+> => {
+  return useMutation(getSetBankVerificationMutationOptions(options));
+};
 
 /**
  * Returns the address users should send to when funding the platform via
@@ -1866,2971 +4902,6967 @@ var, with a documented fallback.
 
  * @summary Returns the platform's on-chain receiving address for stablecoin/ETH funding
  */
-export const GetPlatformReceivingAddressResponse = zod.object({
-  address: zod
-    .string()
-    .describe(
-      "Ethereum mainnet address that should receive on-chain payments to fund the platform.",
-    ),
-  chain: zod.string(),
-  supportedAssets: zod
-    .array(zod.string())
-    .describe(
-      "Asset symbols this address accepts (e.g. ETH, USDT, USDC, DAI).",
-    ),
-});
+export const getGetPlatformReceivingAddressUrl = () => {
+  return `/api/platform/receiving-address`;
+};
+
+export const getPlatformReceivingAddress = async (
+  options?: RequestInit,
+): Promise<PlatformReceivingAddress> => {
+  return customFetch<PlatformReceivingAddress>(
+    getGetPlatformReceivingAddressUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetPlatformReceivingAddressQueryKey = () => {
+  return [`/api/platform/receiving-address`] as const;
+};
+
+export const getGetPlatformReceivingAddressQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPlatformReceivingAddress>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformReceivingAddress>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPlatformReceivingAddressQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPlatformReceivingAddress>>
+  > = ({ signal }) =>
+    getPlatformReceivingAddress({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformReceivingAddress>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPlatformReceivingAddressQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPlatformReceivingAddress>>
+>;
+export type GetPlatformReceivingAddressQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Returns the platform's on-chain receiving address for stablecoin/ETH funding
+ */
+
+export function useGetPlatformReceivingAddress<
+  TData = Awaited<ReturnType<typeof getPlatformReceivingAddress>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformReceivingAddress>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPlatformReceivingAddressQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List the user's connected external wallets
  */
-export const GetConnectedWalletsResponseItem = zod
-  .object({
-    id: zod.string(),
-    address: zod.string(),
-    walletType: zod.string(),
-    balance: zod.number(),
-    currency: zod.string(),
-    connectedAt: zod.string(),
-    provider: zod
-      .enum(["self_custody", "moonpay", "coinbase"])
-      .describe(
-        "Connection class — self_custody for the original Connect-Wallet flow, or an exchange provider for Connect-Exchange-Wallet links.",
-      ),
-    label: zod.string().nullish(),
-    email: zod
-      .string()
-      .nullish()
-      .describe(
-        "NeXTrade email forwarded to the exchange provider as the user's account identity.",
-      ),
-    syncedProfile: zod
-      .object({
-        fullName: zod.string(),
-        email: zod.string(),
-        country: zod.string(),
-        phone: zod.string().nullish(),
-        bankName: zod.string().nullish(),
-        bankLast4: zod.string().nullish(),
-        cardLast4: zod.string().nullish(),
-      })
-      .nullish()
-      .describe(
-        "NeXTrade profile fields forwarded to the exchange provider so the user is not re-prompted for sign-up info.",
-      ),
-  })
-  .describe(
-    "Public, user-facing view of a connected external wallet. Sensitive\ncredential material (seed phrase \/ private key) is intentionally never\nreturned through user-facing endpoints. Use AdminConnectedWallet on\nadmin-only endpoints when those fields are required.\n",
-  );
-export const GetConnectedWalletsResponse = zod.array(
-  GetConnectedWalletsResponseItem,
-);
+export const getGetConnectedWalletsUrl = () => {
+  return `/api/wallets/connected`;
+};
+
+export const getConnectedWallets = async (
+  options?: RequestInit,
+): Promise<ConnectedWallet[]> => {
+  return customFetch<ConnectedWallet[]>(getGetConnectedWalletsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetConnectedWalletsQueryKey = () => {
+  return [`/api/wallets/connected`] as const;
+};
+
+export const getGetConnectedWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConnectedWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectedWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetConnectedWalletsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getConnectedWallets>>
+  > = ({ signal }) => getConnectedWallets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectedWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConnectedWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConnectedWallets>>
+>;
+export type GetConnectedWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the user's connected external wallets
+ */
+
+export function useGetConnectedWallets<
+  TData = Awaited<ReturnType<typeof getConnectedWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectedWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConnectedWalletsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Fetch live on-chain balance and gas price for a connected wallet
  */
-export const GetConnectedWalletBalanceParams = zod.object({
-  walletId: zod.coerce.string(),
-});
+export const getGetConnectedWalletBalanceUrl = (walletId: string) => {
+  return `/api/wallets/connected/${walletId}/balance`;
+};
 
-export const GetConnectedWalletBalanceResponse = zod.object({
-  walletId: zod.string(),
-  address: zod.string(),
-  chain: zod.string(),
-  ethBalance: zod.number(),
-  tokens: zod.array(
-    zod.object({
-      symbol: zod.string(),
-      address: zod.string(),
-      balance: zod.number(),
-      decimals: zod.number(),
-    }),
-  ),
-  gasPriceGwei: zod.number(),
-  estimatedSendGasFeeEth: zod.number(),
-  fetchedAt: zod.string(),
-  source: zod
-    .string()
-    .describe(
-      "Identifies which RPC provider supplied the data (alchemy \/ infura \/ public).",
-    ),
-  error: zod
-    .string()
-    .nullish()
-    .describe(
-      "Populated when the live lookup failed (e.g. invalid address, no RPC available).",
-    ),
-});
+export const getConnectedWalletBalance = async (
+  walletId: string,
+  options?: RequestInit,
+): Promise<ConnectedWalletLiveBalance> => {
+  return customFetch<ConnectedWalletLiveBalance>(
+    getGetConnectedWalletBalanceUrl(walletId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetConnectedWalletBalanceQueryKey = (walletId: string) => {
+  return [`/api/wallets/connected/${walletId}/balance`] as const;
+};
+
+export const getGetConnectedWalletBalanceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConnectedWalletBalance>>,
+  TError = ErrorType<unknown>,
+>(
+  walletId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectedWalletBalance>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetConnectedWalletBalanceQueryKey(walletId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getConnectedWalletBalance>>
+  > = ({ signal }) =>
+    getConnectedWalletBalance(walletId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!walletId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectedWalletBalance>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConnectedWalletBalanceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConnectedWalletBalance>>
+>;
+export type GetConnectedWalletBalanceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Fetch live on-chain balance and gas price for a connected wallet
+ */
+
+export function useGetConnectedWalletBalance<
+  TData = Awaited<ReturnType<typeof getConnectedWalletBalance>>,
+  TError = ErrorType<unknown>,
+>(
+  walletId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectedWalletBalance>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConnectedWalletBalanceQueryOptions(
+    walletId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Sign and broadcast an on-chain transaction from a connected wallet
  */
-export const SendFromConnectedWalletParams = zod.object({
-  walletId: zod.coerce.string(),
-});
+export const getSendFromConnectedWalletUrl = (walletId: string) => {
+  return `/api/wallets/connected/${walletId}/send`;
+};
 
-export const sendFromConnectedWalletBodyAmountExclusiveMin = 0;
+export const sendFromConnectedWallet = async (
+  walletId: string,
+  sendFromConnectedWalletRequest: SendFromConnectedWalletRequest,
+  options?: RequestInit,
+): Promise<SendFromConnectedWalletResult> => {
+  return customFetch<SendFromConnectedWalletResult>(
+    getSendFromConnectedWalletUrl(walletId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(sendFromConnectedWalletRequest),
+    },
+  );
+};
 
-export const SendFromConnectedWalletBody = zod.object({
-  to: zod.string().min(1),
-  amount: zod.number().gt(sendFromConnectedWalletBodyAmountExclusiveMin),
-  asset: zod
-    .string()
-    .min(1)
-    .describe(
-      "Asset symbol to send (ETH or an ERC-20 symbol like USDT\/USDC).",
-    ),
-});
+export const getSendFromConnectedWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendFromConnectedWallet>>,
+    TError,
+    { walletId: string; data: BodyType<SendFromConnectedWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendFromConnectedWallet>>,
+  TError,
+  { walletId: string; data: BodyType<SendFromConnectedWalletRequest> },
+  TContext
+> => {
+  const mutationKey = ["sendFromConnectedWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const SendFromConnectedWalletResponse = zod.object({
-  success: zod.boolean(),
-  hash: zod.string().nullish(),
-  from: zod.string().nullish(),
-  to: zod.string().nullish(),
-  asset: zod.string(),
-  amount: zod.number(),
-  message: zod.string(),
-  blockNumber: zod
-    .number()
-    .nullish()
-    .describe(
-      "Block number the transaction was mined in. Null if the wait\nfor the first confirmation timed out — callers should treat\nthe hash as broadcast-but-not-yet-confirmed in that case.\n",
-    ),
-  confirmations: zod
-    .number()
-    .describe(
-      "Confirmations observed before responding. Will be 0 when the\nbroadcast succeeded but no receipt was available within the\nwait window, and 1 once the tx is mined.\n",
-    ),
-  status: zod
-    .number()
-    .nullish()
-    .describe(
-      "Receipt status. 1 means success, 0 means reverted on-chain,\nnull means no receipt was available within the wait window.\n",
-    ),
-});
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendFromConnectedWallet>>,
+    { walletId: string; data: BodyType<SendFromConnectedWalletRequest> }
+  > = (props) => {
+    const { walletId, data } = props ?? {};
+
+    return sendFromConnectedWallet(walletId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendFromConnectedWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendFromConnectedWallet>>
+>;
+export type SendFromConnectedWalletMutationBody =
+  BodyType<SendFromConnectedWalletRequest>;
+export type SendFromConnectedWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Sign and broadcast an on-chain transaction from a connected wallet
+ */
+export const useSendFromConnectedWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendFromConnectedWallet>>,
+    TError,
+    { walletId: string; data: BodyType<SendFromConnectedWalletRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendFromConnectedWallet>>,
+  TError,
+  { walletId: string; data: BodyType<SendFromConnectedWalletRequest> },
+  TContext
+> => {
+  return useMutation(getSendFromConnectedWalletMutationOptions(options));
+};
 
 /**
  * @summary List the current user's branded payment cards
  */
-export const GetCardsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  type: zod.enum(["debit", "credit"]),
-  brand: zod.enum(["visa", "mastercard", "amex", "xpresspro"]),
-  status: zod.enum(["pending", "approved", "rejected", "cancelled"]),
-  currency: zod.string(),
-  last4: zod
-    .string()
-    .describe("Last four digits of the card number (masked display only)."),
-  expiry: zod.string().describe("MM\/YY"),
-  holderName: zod.string(),
-  spendLimit: zod.number(),
-  creditLimit: zod.number().nullish(),
-  balance: zod
-    .number()
-    .describe(
-      "Spendable balance for debit cards or available credit for credit cards.",
-    ),
-  design: zod.object({
-    templateId: zod
-      .string()
-      .describe('ID of one of the preset templates (or \"custom\").'),
-    primaryColor: zod.string(),
-    secondaryColor: zod.string(),
-    accentColor: zod.string(),
-    pattern: zod.enum(["solid", "gradient", "mesh", "waves", "grid", "carbon"]),
-    textColor: zod.enum(["light", "dark"]),
-  }),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  approvedAt: zod.string().nullish(),
-});
-export const GetCardsResponse = zod.array(GetCardsResponseItem);
+export const getGetCardsUrl = () => {
+  return `/api/cards`;
+};
+
+export const getCards = async (
+  options?: RequestInit,
+): Promise<BrokerCard[]> => {
+  return customFetch<BrokerCard[]>(getGetCardsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCardsQueryKey = () => {
+  return [`/api/cards`] as const;
+};
+
+export const getGetCardsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCards>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCards>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCardsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCards>>> = ({
+    signal,
+  }) => getCards({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCards>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCardsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCards>>
+>;
+export type GetCardsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the current user's branded payment cards
+ */
+
+export function useGetCards<
+  TData = Awaited<ReturnType<typeof getCards>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCards>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCardsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Request a new branded payment card
  */
-export const RequestCardBody = zod.object({
-  type: zod.enum(["debit", "credit"]),
-  brand: zod.enum(["visa", "mastercard", "amex", "xpresspro"]),
-  currency: zod.string(),
-  creditLimit: zod.number().nullish(),
-  design: zod.object({
-    templateId: zod
-      .string()
-      .describe('ID of one of the preset templates (or \"custom\").'),
-    primaryColor: zod.string(),
-    secondaryColor: zod.string(),
-    accentColor: zod.string(),
-    pattern: zod.enum(["solid", "gradient", "mesh", "waves", "grid", "carbon"]),
-    textColor: zod.enum(["light", "dark"]),
-  }),
-});
+export const getRequestCardUrl = () => {
+  return `/api/cards`;
+};
+
+export const requestCard = async (
+  requestCardRequest: RequestCardRequest,
+  options?: RequestInit,
+): Promise<BrokerCard> => {
+  return customFetch<BrokerCard>(getRequestCardUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(requestCardRequest),
+  });
+};
+
+export const getRequestCardMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestCard>>,
+    TError,
+    { data: BodyType<RequestCardRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestCard>>,
+  TError,
+  { data: BodyType<RequestCardRequest> },
+  TContext
+> => {
+  const mutationKey = ["requestCard"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestCard>>,
+    { data: BodyType<RequestCardRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return requestCard(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RequestCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestCard>>
+>;
+export type RequestCardMutationBody = BodyType<RequestCardRequest>;
+export type RequestCardMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Request a new branded payment card
+ */
+export const useRequestCard = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestCard>>,
+    TError,
+    { data: BodyType<RequestCardRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof requestCard>>,
+  TError,
+  { data: BodyType<RequestCardRequest> },
+  TContext
+> => {
+  return useMutation(getRequestCardMutationOptions(options));
+};
 
 /**
  * @summary Update the design of an existing card
  */
-export const UpdateCardDesignParams = zod.object({
-  cardId: zod.coerce.string(),
-});
+export const getUpdateCardDesignUrl = (cardId: string) => {
+  return `/api/cards/${cardId}`;
+};
 
-export const UpdateCardDesignBody = zod.object({
-  design: zod.object({
-    templateId: zod
-      .string()
-      .describe('ID of one of the preset templates (or \"custom\").'),
-    primaryColor: zod.string(),
-    secondaryColor: zod.string(),
-    accentColor: zod.string(),
-    pattern: zod.enum(["solid", "gradient", "mesh", "waves", "grid", "carbon"]),
-    textColor: zod.enum(["light", "dark"]),
-  }),
-  holderName: zod.string().optional(),
-});
+export const updateCardDesign = async (
+  cardId: string,
+  updateCardDesignRequest: UpdateCardDesignRequest,
+  options?: RequestInit,
+): Promise<BrokerCard> => {
+  return customFetch<BrokerCard>(getUpdateCardDesignUrl(cardId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateCardDesignRequest),
+  });
+};
 
-export const UpdateCardDesignResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  type: zod.enum(["debit", "credit"]),
-  brand: zod.enum(["visa", "mastercard", "amex", "xpresspro"]),
-  status: zod.enum(["pending", "approved", "rejected", "cancelled"]),
-  currency: zod.string(),
-  last4: zod
-    .string()
-    .describe("Last four digits of the card number (masked display only)."),
-  expiry: zod.string().describe("MM\/YY"),
-  holderName: zod.string(),
-  spendLimit: zod.number(),
-  creditLimit: zod.number().nullish(),
-  balance: zod
-    .number()
-    .describe(
-      "Spendable balance for debit cards or available credit for credit cards.",
-    ),
-  design: zod.object({
-    templateId: zod
-      .string()
-      .describe('ID of one of the preset templates (or \"custom\").'),
-    primaryColor: zod.string(),
-    secondaryColor: zod.string(),
-    accentColor: zod.string(),
-    pattern: zod.enum(["solid", "gradient", "mesh", "waves", "grid", "carbon"]),
-    textColor: zod.enum(["light", "dark"]),
-  }),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  approvedAt: zod.string().nullish(),
-});
+export const getUpdateCardDesignMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCardDesign>>,
+    TError,
+    { cardId: string; data: BodyType<UpdateCardDesignRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCardDesign>>,
+  TError,
+  { cardId: string; data: BodyType<UpdateCardDesignRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateCardDesign"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCardDesign>>,
+    { cardId: string; data: BodyType<UpdateCardDesignRequest> }
+  > = (props) => {
+    const { cardId, data } = props ?? {};
+
+    return updateCardDesign(cardId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCardDesignMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCardDesign>>
+>;
+export type UpdateCardDesignMutationBody = BodyType<UpdateCardDesignRequest>;
+export type UpdateCardDesignMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update the design of an existing card
+ */
+export const useUpdateCardDesign = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCardDesign>>,
+    TError,
+    { cardId: string; data: BodyType<UpdateCardDesignRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCardDesign>>,
+  TError,
+  { cardId: string; data: BodyType<UpdateCardDesignRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateCardDesignMutationOptions(options));
+};
 
 /**
  * @summary Cancel / close a card
  */
-export const CancelCardParams = zod.object({
-  cardId: zod.coerce.string(),
-});
+export const getCancelCardUrl = (cardId: string) => {
+  return `/api/cards/${cardId}`;
+};
 
-export const CancelCardResponse = zod.object({
-  success: zod.boolean(),
-  message: zod.string(),
-});
+export const cancelCard = async (
+  cardId: string,
+  options?: RequestInit,
+): Promise<ActionResult> => {
+  return customFetch<ActionResult>(getCancelCardUrl(cardId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getCancelCardMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelCard>>,
+    TError,
+    { cardId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelCard>>,
+  TError,
+  { cardId: string },
+  TContext
+> => {
+  const mutationKey = ["cancelCard"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelCard>>,
+    { cardId: string }
+  > = (props) => {
+    const { cardId } = props ?? {};
+
+    return cancelCard(cardId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelCard>>
+>;
+
+export type CancelCardMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Cancel / close a card
+ */
+export const useCancelCard = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelCard>>,
+    TError,
+    { cardId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof cancelCard>>,
+  TError,
+  { cardId: string },
+  TContext
+> => {
+  return useMutation(getCancelCardMutationOptions(options));
+};
 
 /**
  * @summary List active promotions / activities for the user
  */
-export const GetPromotionsResponseItem = zod.object({
-  id: zod.string(),
-  title: zod.string(),
-  description: zod.string(),
-  category: zod.enum(["bonus", "contest", "cashback", "education", "referral"]),
-  reward: zod.string(),
-  rewardAmount: zod.number(),
-  currency: zod.string(),
-  startsAt: zod.string(),
-  endsAt: zod.string(),
-  active: zod.boolean(),
-  participants: zod.number(),
-  joined: zod.boolean().describe("True when the current user is enrolled."),
-  createdAt: zod.string(),
-});
-export const GetPromotionsResponse = zod.array(GetPromotionsResponseItem);
+export const getGetPromotionsUrl = () => {
+  return `/api/promotions`;
+};
+
+export const getPromotions = async (
+  options?: RequestInit,
+): Promise<Promotion[]> => {
+  return customFetch<Promotion[]>(getGetPromotionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPromotionsQueryKey = () => {
+  return [`/api/promotions`] as const;
+};
+
+export const getGetPromotionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPromotions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPromotions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPromotionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getPromotions>>> = ({
+    signal,
+  }) => getPromotions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPromotions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPromotionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPromotions>>
+>;
+export type GetPromotionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List active promotions / activities for the user
+ */
+
+export function useGetPromotions<
+  TData = Awaited<ReturnType<typeof getPromotions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPromotions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPromotionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Enrol the current user in a promotion
  */
-export const JoinPromotionParams = zod.object({
-  promotionId: zod.coerce.string(),
-});
+export const getJoinPromotionUrl = (promotionId: string) => {
+  return `/api/promotions/${promotionId}/join`;
+};
 
-export const JoinPromotionResponse = zod.object({
-  id: zod.string(),
-  title: zod.string(),
-  description: zod.string(),
-  category: zod.enum(["bonus", "contest", "cashback", "education", "referral"]),
-  reward: zod.string(),
-  rewardAmount: zod.number(),
-  currency: zod.string(),
-  startsAt: zod.string(),
-  endsAt: zod.string(),
-  active: zod.boolean(),
-  participants: zod.number(),
-  joined: zod.boolean().describe("True when the current user is enrolled."),
-  createdAt: zod.string(),
-});
+export const joinPromotion = async (
+  promotionId: string,
+  options?: RequestInit,
+): Promise<Promotion> => {
+  return customFetch<Promotion>(getJoinPromotionUrl(promotionId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getJoinPromotionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinPromotion>>,
+    TError,
+    { promotionId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof joinPromotion>>,
+  TError,
+  { promotionId: string },
+  TContext
+> => {
+  const mutationKey = ["joinPromotion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof joinPromotion>>,
+    { promotionId: string }
+  > = (props) => {
+    const { promotionId } = props ?? {};
+
+    return joinPromotion(promotionId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type JoinPromotionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof joinPromotion>>
+>;
+
+export type JoinPromotionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Enrol the current user in a promotion
+ */
+export const useJoinPromotion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinPromotion>>,
+    TError,
+    { promotionId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof joinPromotion>>,
+  TError,
+  { promotionId: string },
+  TContext
+> => {
+  return useMutation(getJoinPromotionMutationOptions(options));
+};
 
 /**
  * @summary List card requests across all users (admin only)
  */
-export const GetAdminCardsResponseItem = zod
-  .object({
-    id: zod.string(),
-    userId: zod.string(),
-    type: zod.enum(["debit", "credit"]),
-    brand: zod.enum(["visa", "mastercard", "amex", "xpresspro"]),
-    status: zod.enum(["pending", "approved", "rejected", "cancelled"]),
-    currency: zod.string(),
-    last4: zod
-      .string()
-      .describe("Last four digits of the card number (masked display only)."),
-    expiry: zod.string().describe("MM\/YY"),
-    holderName: zod.string(),
-    spendLimit: zod.number(),
-    creditLimit: zod.number().nullish(),
-    balance: zod
-      .number()
-      .describe(
-        "Spendable balance for debit cards or available credit for credit cards.",
-      ),
-    design: zod.object({
-      templateId: zod
-        .string()
-        .describe('ID of one of the preset templates (or \"custom\").'),
-      primaryColor: zod.string(),
-      secondaryColor: zod.string(),
-      accentColor: zod.string(),
-      pattern: zod.enum([
-        "solid",
-        "gradient",
-        "mesh",
-        "waves",
-        "grid",
-        "carbon",
-      ]),
-      textColor: zod.enum(["light", "dark"]),
-    }),
-    rejectionReason: zod.string().nullish(),
-    createdAt: zod.string(),
-    approvedAt: zod.string().nullish(),
-  })
-  .and(
-    zod.object({
-      userName: zod.string(),
-      userEmail: zod.string(),
-    }),
-  );
-export const GetAdminCardsResponse = zod.array(GetAdminCardsResponseItem);
+export const getGetAdminCardsUrl = () => {
+  return `/api/admin/cards`;
+};
+
+export const getAdminCards = async (
+  options?: RequestInit,
+): Promise<AdminCardSummary[]> => {
+  return customFetch<AdminCardSummary[]>(getGetAdminCardsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminCardsQueryKey = () => {
+  return [`/api/admin/cards`] as const;
+};
+
+export const getGetAdminCardsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminCards>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminCards>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminCardsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminCards>>> = ({
+    signal,
+  }) => getAdminCards({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminCards>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminCardsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminCards>>
+>;
+export type GetAdminCardsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List card requests across all users (admin only)
+ */
+
+export function useGetAdminCards<
+  TData = Awaited<ReturnType<typeof getAdminCards>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminCards>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminCardsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Approve or reject a card request
  */
-export const SetCardDecisionParams = zod.object({
-  cardId: zod.coerce.string(),
-});
+export const getSetCardDecisionUrl = (cardId: string) => {
+  return `/api/admin/cards/${cardId}/decision`;
+};
 
-export const SetCardDecisionBody = zod.object({
-  decision: zod.enum(["approve", "reject"]),
-  reason: zod.string().nullish(),
-});
+export const setCardDecision = async (
+  cardId: string,
+  cardDecisionRequest: CardDecisionRequest,
+  options?: RequestInit,
+): Promise<AdminCardSummary> => {
+  return customFetch<AdminCardSummary>(getSetCardDecisionUrl(cardId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(cardDecisionRequest),
+  });
+};
 
-export const SetCardDecisionResponse = zod
-  .object({
-    id: zod.string(),
-    userId: zod.string(),
-    type: zod.enum(["debit", "credit"]),
-    brand: zod.enum(["visa", "mastercard", "amex", "xpresspro"]),
-    status: zod.enum(["pending", "approved", "rejected", "cancelled"]),
-    currency: zod.string(),
-    last4: zod
-      .string()
-      .describe("Last four digits of the card number (masked display only)."),
-    expiry: zod.string().describe("MM\/YY"),
-    holderName: zod.string(),
-    spendLimit: zod.number(),
-    creditLimit: zod.number().nullish(),
-    balance: zod
-      .number()
-      .describe(
-        "Spendable balance for debit cards or available credit for credit cards.",
-      ),
-    design: zod.object({
-      templateId: zod
-        .string()
-        .describe('ID of one of the preset templates (or \"custom\").'),
-      primaryColor: zod.string(),
-      secondaryColor: zod.string(),
-      accentColor: zod.string(),
-      pattern: zod.enum([
-        "solid",
-        "gradient",
-        "mesh",
-        "waves",
-        "grid",
-        "carbon",
-      ]),
-      textColor: zod.enum(["light", "dark"]),
-    }),
-    rejectionReason: zod.string().nullish(),
-    createdAt: zod.string(),
-    approvedAt: zod.string().nullish(),
-  })
-  .and(
-    zod.object({
-      userName: zod.string(),
-      userEmail: zod.string(),
-    }),
-  );
+export const getSetCardDecisionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setCardDecision>>,
+    TError,
+    { cardId: string; data: BodyType<CardDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setCardDecision>>,
+  TError,
+  { cardId: string; data: BodyType<CardDecisionRequest> },
+  TContext
+> => {
+  const mutationKey = ["setCardDecision"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setCardDecision>>,
+    { cardId: string; data: BodyType<CardDecisionRequest> }
+  > = (props) => {
+    const { cardId, data } = props ?? {};
+
+    return setCardDecision(cardId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetCardDecisionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setCardDecision>>
+>;
+export type SetCardDecisionMutationBody = BodyType<CardDecisionRequest>;
+export type SetCardDecisionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve or reject a card request
+ */
+export const useSetCardDecision = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setCardDecision>>,
+    TError,
+    { cardId: string; data: BodyType<CardDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof setCardDecision>>,
+  TError,
+  { cardId: string; data: BodyType<CardDecisionRequest> },
+  TContext
+> => {
+  return useMutation(getSetCardDecisionMutationOptions(options));
+};
 
 /**
  * @summary List all promotions (active + inactive)
  */
-export const GetAdminPromotionsResponseItem = zod.object({
-  id: zod.string(),
-  title: zod.string(),
-  description: zod.string(),
-  category: zod.enum(["bonus", "contest", "cashback", "education", "referral"]),
-  reward: zod.string(),
-  rewardAmount: zod.number(),
-  currency: zod.string(),
-  startsAt: zod.string(),
-  endsAt: zod.string(),
-  active: zod.boolean(),
-  participants: zod.number(),
-  joined: zod.boolean().describe("True when the current user is enrolled."),
-  createdAt: zod.string(),
-});
-export const GetAdminPromotionsResponse = zod.array(
-  GetAdminPromotionsResponseItem,
-);
+export const getGetAdminPromotionsUrl = () => {
+  return `/api/admin/promotions`;
+};
+
+export const getAdminPromotions = async (
+  options?: RequestInit,
+): Promise<Promotion[]> => {
+  return customFetch<Promotion[]>(getGetAdminPromotionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminPromotionsQueryKey = () => {
+  return [`/api/admin/promotions`] as const;
+};
+
+export const getGetAdminPromotionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminPromotions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPromotions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminPromotionsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminPromotions>>
+  > = ({ signal }) => getAdminPromotions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPromotions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminPromotionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminPromotions>>
+>;
+export type GetAdminPromotionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all promotions (active + inactive)
+ */
+
+export function useGetAdminPromotions<
+  TData = Awaited<ReturnType<typeof getAdminPromotions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPromotions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminPromotionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a new promotion / activity
  */
-export const CreatePromotionBody = zod.object({
-  title: zod.string(),
-  description: zod.string(),
-  category: zod.enum(["bonus", "contest", "cashback", "education", "referral"]),
-  reward: zod.string(),
-  rewardAmount: zod.number(),
-  currency: zod.string(),
-  startsAt: zod.string(),
-  endsAt: zod.string(),
-  active: zod.boolean(),
-});
+export const getCreatePromotionUrl = () => {
+  return `/api/admin/promotions`;
+};
+
+export const createPromotion = async (
+  createPromotionRequest: CreatePromotionRequest,
+  options?: RequestInit,
+): Promise<Promotion> => {
+  return customFetch<Promotion>(getCreatePromotionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPromotionRequest),
+  });
+};
+
+export const getCreatePromotionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPromotion>>,
+    TError,
+    { data: BodyType<CreatePromotionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPromotion>>,
+  TError,
+  { data: BodyType<CreatePromotionRequest> },
+  TContext
+> => {
+  const mutationKey = ["createPromotion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPromotion>>,
+    { data: BodyType<CreatePromotionRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPromotion(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePromotionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPromotion>>
+>;
+export type CreatePromotionMutationBody = BodyType<CreatePromotionRequest>;
+export type CreatePromotionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new promotion / activity
+ */
+export const useCreatePromotion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPromotion>>,
+    TError,
+    { data: BodyType<CreatePromotionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPromotion>>,
+  TError,
+  { data: BodyType<CreatePromotionRequest> },
+  TContext
+> => {
+  return useMutation(getCreatePromotionMutationOptions(options));
+};
 
 /**
  * @summary Update an existing promotion
  */
-export const UpdatePromotionParams = zod.object({
-  promotionId: zod.coerce.string(),
-});
+export const getUpdatePromotionUrl = (promotionId: string) => {
+  return `/api/admin/promotions/${promotionId}`;
+};
 
-export const UpdatePromotionBody = zod.object({
-  title: zod.string().optional(),
-  description: zod.string().optional(),
-  category: zod
-    .enum(["bonus", "contest", "cashback", "education", "referral"])
-    .optional(),
-  reward: zod.string().optional(),
-  rewardAmount: zod.number().optional(),
-  currency: zod.string().optional(),
-  startsAt: zod.string().optional(),
-  endsAt: zod.string().optional(),
-  active: zod.boolean().optional(),
-});
+export const updatePromotion = async (
+  promotionId: string,
+  updatePromotionRequest: UpdatePromotionRequest,
+  options?: RequestInit,
+): Promise<Promotion> => {
+  return customFetch<Promotion>(getUpdatePromotionUrl(promotionId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updatePromotionRequest),
+  });
+};
 
-export const UpdatePromotionResponse = zod.object({
-  id: zod.string(),
-  title: zod.string(),
-  description: zod.string(),
-  category: zod.enum(["bonus", "contest", "cashback", "education", "referral"]),
-  reward: zod.string(),
-  rewardAmount: zod.number(),
-  currency: zod.string(),
-  startsAt: zod.string(),
-  endsAt: zod.string(),
-  active: zod.boolean(),
-  participants: zod.number(),
-  joined: zod.boolean().describe("True when the current user is enrolled."),
-  createdAt: zod.string(),
-});
+export const getUpdatePromotionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePromotion>>,
+    TError,
+    { promotionId: string; data: BodyType<UpdatePromotionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePromotion>>,
+  TError,
+  { promotionId: string; data: BodyType<UpdatePromotionRequest> },
+  TContext
+> => {
+  const mutationKey = ["updatePromotion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePromotion>>,
+    { promotionId: string; data: BodyType<UpdatePromotionRequest> }
+  > = (props) => {
+    const { promotionId, data } = props ?? {};
+
+    return updatePromotion(promotionId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePromotionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePromotion>>
+>;
+export type UpdatePromotionMutationBody = BodyType<UpdatePromotionRequest>;
+export type UpdatePromotionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update an existing promotion
+ */
+export const useUpdatePromotion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePromotion>>,
+    TError,
+    { promotionId: string; data: BodyType<UpdatePromotionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePromotion>>,
+  TError,
+  { promotionId: string; data: BodyType<UpdatePromotionRequest> },
+  TContext
+> => {
+  return useMutation(getUpdatePromotionMutationOptions(options));
+};
 
 /**
  * @summary Delete a promotion
  */
-export const DeletePromotionParams = zod.object({
-  promotionId: zod.coerce.string(),
-});
+export const getDeletePromotionUrl = (promotionId: string) => {
+  return `/api/admin/promotions/${promotionId}`;
+};
 
-export const DeletePromotionResponse = zod.object({
-  success: zod.boolean(),
-  message: zod.string(),
-});
+export const deletePromotion = async (
+  promotionId: string,
+  options?: RequestInit,
+): Promise<ActionResult> => {
+  return customFetch<ActionResult>(getDeletePromotionUrl(promotionId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeletePromotionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePromotion>>,
+    TError,
+    { promotionId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePromotion>>,
+  TError,
+  { promotionId: string },
+  TContext
+> => {
+  const mutationKey = ["deletePromotion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePromotion>>,
+    { promotionId: string }
+  > = (props) => {
+    const { promotionId } = props ?? {};
+
+    return deletePromotion(promotionId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePromotionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePromotion>>
+>;
+
+export type DeletePromotionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a promotion
+ */
+export const useDeletePromotion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePromotion>>,
+    TError,
+    { promotionId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePromotion>>,
+  TError,
+  { promotionId: string },
+  TContext
+> => {
+  return useMutation(getDeletePromotionMutationOptions(options));
+};
 
 /**
  * @summary Recent platform activity log
  */
-export const GetAdminActivityResponseItem = zod.object({
-  id: zod.string(),
-  timestamp: zod.string(),
-  actorId: zod.string().nullish(),
-  actorName: zod.string().nullish(),
-  action: zod.string(),
-  detail: zod.string(),
-});
-export const GetAdminActivityResponse = zod.array(GetAdminActivityResponseItem);
+export const getGetAdminActivityUrl = () => {
+  return `/api/admin/activity`;
+};
+
+export const getAdminActivity = async (
+  options?: RequestInit,
+): Promise<ActivityLogEntry[]> => {
+  return customFetch<ActivityLogEntry[]>(getGetAdminActivityUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminActivityQueryKey = () => {
+  return [`/api/admin/activity`] as const;
+};
+
+export const getGetAdminActivityQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminActivity>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminActivity>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminActivityQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminActivity>>
+  > = ({ signal }) => getAdminActivity({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminActivity>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminActivityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminActivity>>
+>;
+export type GetAdminActivityQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Recent platform activity log
+ */
+
+export function useGetAdminActivity<
+  TData = Awaited<ReturnType<typeof getAdminActivity>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminActivity>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminActivityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Current user billing rates, current cycle dues, and history
  */
-export const GetMyBillingResponse = zod.object({
-  rates: zod
-    .object({
-      maintenance: zod.number().describe("Monthly account maintenance fee."),
-      aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-      activeTrade: zod
-        .number()
-        .describe("Monthly fee per new active ongoing trade."),
-      currency: zod.string(),
-    })
-    .describe("Monthly mandatory fees applicable to a user."),
-  currentCycle: zod.object({
-    cycleId: zod.string(),
-    cycleStart: zod.string(),
-    cycleEnd: zod.string(),
-    dueAt: zod.string(),
-    currency: zod.string(),
-    charges: zod.array(
-      zod.object({
-        key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-        label: zod.string(),
-        amount: zod.number(),
-        paid: zod.boolean(),
-        paidAt: zod.string().nullable(),
-      }),
-    ),
-    totalDue: zod.number(),
-    totalPaid: zod.number(),
-    fullySettled: zod.boolean(),
-  }),
-  history: zod.array(
-    zod.object({
-      cycleId: zod.string(),
-      cycleStart: zod.string(),
-      cycleEnd: zod.string(),
-      dueAt: zod.string(),
-      currency: zod.string(),
-      charges: zod.array(
-        zod.object({
-          key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-          label: zod.string(),
-          amount: zod.number(),
-          paid: zod.boolean(),
-          paidAt: zod.string().nullable(),
-        }),
-      ),
-      totalDue: zod.number(),
-      totalPaid: zod.number(),
-      fullySettled: zod.boolean(),
-    }),
-  ),
-  overdue: zod.boolean(),
-});
+export const getGetMyBillingUrl = () => {
+  return `/api/billing/me`;
+};
+
+export const getMyBilling = async (
+  options?: RequestInit,
+): Promise<BillingStatus> => {
+  return customFetch<BillingStatus>(getGetMyBillingUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyBillingQueryKey = () => {
+  return [`/api/billing/me`] as const;
+};
+
+export const getGetMyBillingQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyBilling>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyBilling>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyBillingQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyBilling>>> = ({
+    signal,
+  }) => getMyBilling({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyBilling>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyBillingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyBilling>>
+>;
+export type GetMyBillingQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Current user billing rates, current cycle dues, and history
+ */
+
+export function useGetMyBilling<
+  TData = Awaited<ReturnType<typeof getMyBilling>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyBilling>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyBillingQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Settle one or more current cycle billing items
  */
-export const PayBillingBody = zod.object({
-  items: zod.array(zod.enum(["maintenance", "aiBot", "activeTrade"])),
-  walletId: zod
-    .string()
-    .nullish()
-    .describe("Optional source wallet; defaults to main wallet."),
-});
+export const getPayBillingUrl = () => {
+  return `/api/billing/pay`;
+};
 
-export const PayBillingResponse = zod.object({
-  rates: zod
-    .object({
-      maintenance: zod.number().describe("Monthly account maintenance fee."),
-      aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-      activeTrade: zod
-        .number()
-        .describe("Monthly fee per new active ongoing trade."),
-      currency: zod.string(),
-    })
-    .describe("Monthly mandatory fees applicable to a user."),
-  currentCycle: zod.object({
-    cycleId: zod.string(),
-    cycleStart: zod.string(),
-    cycleEnd: zod.string(),
-    dueAt: zod.string(),
-    currency: zod.string(),
-    charges: zod.array(
-      zod.object({
-        key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-        label: zod.string(),
-        amount: zod.number(),
-        paid: zod.boolean(),
-        paidAt: zod.string().nullable(),
-      }),
-    ),
-    totalDue: zod.number(),
-    totalPaid: zod.number(),
-    fullySettled: zod.boolean(),
-  }),
-  history: zod.array(
-    zod.object({
-      cycleId: zod.string(),
-      cycleStart: zod.string(),
-      cycleEnd: zod.string(),
-      dueAt: zod.string(),
-      currency: zod.string(),
-      charges: zod.array(
-        zod.object({
-          key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-          label: zod.string(),
-          amount: zod.number(),
-          paid: zod.boolean(),
-          paidAt: zod.string().nullable(),
-        }),
-      ),
-      totalDue: zod.number(),
-      totalPaid: zod.number(),
-      fullySettled: zod.boolean(),
-    }),
-  ),
-  overdue: zod.boolean(),
-});
+export const payBilling = async (
+  billingPaymentRequest: BillingPaymentRequest,
+  options?: RequestInit,
+): Promise<BillingStatus> => {
+  return customFetch<BillingStatus>(getPayBillingUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(billingPaymentRequest),
+  });
+};
+
+export const getPayBillingMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof payBilling>>,
+    TError,
+    { data: BodyType<BillingPaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof payBilling>>,
+  TError,
+  { data: BodyType<BillingPaymentRequest> },
+  TContext
+> => {
+  const mutationKey = ["payBilling"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof payBilling>>,
+    { data: BodyType<BillingPaymentRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return payBilling(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PayBillingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof payBilling>>
+>;
+export type PayBillingMutationBody = BodyType<BillingPaymentRequest>;
+export type PayBillingMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Settle one or more current cycle billing items
+ */
+export const usePayBilling = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof payBilling>>,
+    TError,
+    { data: BodyType<BillingPaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof payBilling>>,
+  TError,
+  { data: BodyType<BillingPaymentRequest> },
+  TContext
+> => {
+  return useMutation(getPayBillingMutationOptions(options));
+};
 
 /**
  * @summary Per-user billing overview for admin
  */
-export const GetAdminBillingResponse = zod.object({
-  defaults: zod
-    .object({
-      maintenance: zod.number().describe("Monthly account maintenance fee."),
-      aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-      activeTrade: zod
-        .number()
-        .describe("Monthly fee per new active ongoing trade."),
-      currency: zod.string(),
-    })
-    .describe("Monthly mandatory fees applicable to a user."),
-  rows: zod.array(
-    zod.object({
-      userId: zod.string(),
-      userName: zod.string(),
-      userEmail: zod.string(),
-      rates: zod
-        .object({
-          maintenance: zod
-            .number()
-            .describe("Monthly account maintenance fee."),
-          aiBot: zod
-            .number()
-            .describe("Monthly AI assistance bot subscription."),
-          activeTrade: zod
-            .number()
-            .describe("Monthly fee per new active ongoing trade."),
-          currency: zod.string(),
-        })
-        .describe("Monthly mandatory fees applicable to a user."),
-      usingDefaults: zod.boolean(),
-      currentCycle: zod.object({
-        cycleId: zod.string(),
-        cycleStart: zod.string(),
-        cycleEnd: zod.string(),
-        dueAt: zod.string(),
-        currency: zod.string(),
-        charges: zod.array(
-          zod.object({
-            key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-            label: zod.string(),
-            amount: zod.number(),
-            paid: zod.boolean(),
-            paidAt: zod.string().nullable(),
-          }),
-        ),
-        totalDue: zod.number(),
-        totalPaid: zod.number(),
-        fullySettled: zod.boolean(),
-      }),
-    }),
-  ),
-});
+export const getGetAdminBillingUrl = () => {
+  return `/api/admin/billing`;
+};
+
+export const getAdminBilling = async (
+  options?: RequestInit,
+): Promise<AdminBillingOverview> => {
+  return customFetch<AdminBillingOverview>(getGetAdminBillingUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminBillingQueryKey = () => {
+  return [`/api/admin/billing`] as const;
+};
+
+export const getGetAdminBillingQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminBilling>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBilling>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminBillingQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminBilling>>> = ({
+    signal,
+  }) => getAdminBilling({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBilling>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminBillingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminBilling>>
+>;
+export type GetAdminBillingQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Per-user billing overview for admin
+ */
+
+export function useGetAdminBilling<
+  TData = Awaited<ReturnType<typeof getAdminBilling>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminBilling>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminBillingQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update platform default billing rates (applied to new users)
  */
-export const UpdateBillingDefaultsBody = zod
-  .object({
-    maintenance: zod.number().describe("Monthly account maintenance fee."),
-    aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-    activeTrade: zod
-      .number()
-      .describe("Monthly fee per new active ongoing trade."),
-    currency: zod.string(),
-  })
-  .describe("Monthly mandatory fees applicable to a user.");
+export const getUpdateBillingDefaultsUrl = () => {
+  return `/api/admin/billing`;
+};
 
-export const UpdateBillingDefaultsResponse = zod
-  .object({
-    maintenance: zod.number().describe("Monthly account maintenance fee."),
-    aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-    activeTrade: zod
-      .number()
-      .describe("Monthly fee per new active ongoing trade."),
-    currency: zod.string(),
-  })
-  .describe("Monthly mandatory fees applicable to a user.");
+export const updateBillingDefaults = async (
+  billingRates: BillingRates,
+  options?: RequestInit,
+): Promise<BillingRates> => {
+  return customFetch<BillingRates>(getUpdateBillingDefaultsUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(billingRates),
+  });
+};
+
+export const getUpdateBillingDefaultsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBillingDefaults>>,
+    TError,
+    { data: BodyType<BillingRates> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateBillingDefaults>>,
+  TError,
+  { data: BodyType<BillingRates> },
+  TContext
+> => {
+  const mutationKey = ["updateBillingDefaults"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateBillingDefaults>>,
+    { data: BodyType<BillingRates> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateBillingDefaults(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateBillingDefaultsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateBillingDefaults>>
+>;
+export type UpdateBillingDefaultsMutationBody = BodyType<BillingRates>;
+export type UpdateBillingDefaultsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update platform default billing rates (applied to new users)
+ */
+export const useUpdateBillingDefaults = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBillingDefaults>>,
+    TError,
+    { data: BodyType<BillingRates> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateBillingDefaults>>,
+  TError,
+  { data: BodyType<BillingRates> },
+  TContext
+> => {
+  return useMutation(getUpdateBillingDefaultsMutationOptions(options));
+};
 
 /**
  * @summary Set per-user billing rates (overrides defaults)
  */
-export const UpdateUserBillingRatesParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getUpdateUserBillingRatesUrl = (userId: string) => {
+  return `/api/admin/billing/users/${userId}`;
+};
 
-export const UpdateUserBillingRatesBody = zod
-  .object({
-    maintenance: zod.number().describe("Monthly account maintenance fee."),
-    aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-    activeTrade: zod
-      .number()
-      .describe("Monthly fee per new active ongoing trade."),
-    currency: zod.string(),
-  })
-  .describe("Monthly mandatory fees applicable to a user.");
+export const updateUserBillingRates = async (
+  userId: string,
+  billingRates: BillingRates,
+  options?: RequestInit,
+): Promise<AdminBillingUserRow> => {
+  return customFetch<AdminBillingUserRow>(
+    getUpdateUserBillingRatesUrl(userId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(billingRates),
+    },
+  );
+};
 
-export const UpdateUserBillingRatesResponse = zod.object({
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  rates: zod
-    .object({
-      maintenance: zod.number().describe("Monthly account maintenance fee."),
-      aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-      activeTrade: zod
-        .number()
-        .describe("Monthly fee per new active ongoing trade."),
-      currency: zod.string(),
-    })
-    .describe("Monthly mandatory fees applicable to a user."),
-  usingDefaults: zod.boolean(),
-  currentCycle: zod.object({
-    cycleId: zod.string(),
-    cycleStart: zod.string(),
-    cycleEnd: zod.string(),
-    dueAt: zod.string(),
-    currency: zod.string(),
-    charges: zod.array(
-      zod.object({
-        key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-        label: zod.string(),
-        amount: zod.number(),
-        paid: zod.boolean(),
-        paidAt: zod.string().nullable(),
-      }),
-    ),
-    totalDue: zod.number(),
-    totalPaid: zod.number(),
-    fullySettled: zod.boolean(),
-  }),
-});
+export const getUpdateUserBillingRatesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateUserBillingRates>>,
+    TError,
+    { userId: string; data: BodyType<BillingRates> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateUserBillingRates>>,
+  TError,
+  { userId: string; data: BodyType<BillingRates> },
+  TContext
+> => {
+  const mutationKey = ["updateUserBillingRates"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateUserBillingRates>>,
+    { userId: string; data: BodyType<BillingRates> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return updateUserBillingRates(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateUserBillingRatesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateUserBillingRates>>
+>;
+export type UpdateUserBillingRatesMutationBody = BodyType<BillingRates>;
+export type UpdateUserBillingRatesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Set per-user billing rates (overrides defaults)
+ */
+export const useUpdateUserBillingRates = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateUserBillingRates>>,
+    TError,
+    { userId: string; data: BodyType<BillingRates> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateUserBillingRates>>,
+  TError,
+  { userId: string; data: BodyType<BillingRates> },
+  TContext
+> => {
+  return useMutation(getUpdateUserBillingRatesMutationOptions(options));
+};
 
 /**
  * @summary Manually mark a user's current cycle items as paid (e.g. offline settlement)
  */
-export const AdminMarkBillingPaidParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getAdminMarkBillingPaidUrl = (userId: string) => {
+  return `/api/admin/billing/users/${userId}/mark-paid`;
+};
 
-export const AdminMarkBillingPaidBody = zod.object({
-  items: zod.array(zod.enum(["maintenance", "aiBot", "activeTrade"])),
-  walletId: zod
-    .string()
-    .nullish()
-    .describe("Optional source wallet; defaults to main wallet."),
-});
+export const adminMarkBillingPaid = async (
+  userId: string,
+  billingPaymentRequest: BillingPaymentRequest,
+  options?: RequestInit,
+): Promise<AdminBillingUserRow> => {
+  return customFetch<AdminBillingUserRow>(getAdminMarkBillingPaidUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(billingPaymentRequest),
+  });
+};
 
-export const AdminMarkBillingPaidResponse = zod.object({
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  rates: zod
-    .object({
-      maintenance: zod.number().describe("Monthly account maintenance fee."),
-      aiBot: zod.number().describe("Monthly AI assistance bot subscription."),
-      activeTrade: zod
-        .number()
-        .describe("Monthly fee per new active ongoing trade."),
-      currency: zod.string(),
-    })
-    .describe("Monthly mandatory fees applicable to a user."),
-  usingDefaults: zod.boolean(),
-  currentCycle: zod.object({
-    cycleId: zod.string(),
-    cycleStart: zod.string(),
-    cycleEnd: zod.string(),
-    dueAt: zod.string(),
-    currency: zod.string(),
-    charges: zod.array(
-      zod.object({
-        key: zod.enum(["maintenance", "aiBot", "activeTrade"]),
-        label: zod.string(),
-        amount: zod.number(),
-        paid: zod.boolean(),
-        paidAt: zod.string().nullable(),
-      }),
-    ),
-    totalDue: zod.number(),
-    totalPaid: zod.number(),
-    fullySettled: zod.boolean(),
-  }),
-});
+export const getAdminMarkBillingPaidMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminMarkBillingPaid>>,
+    TError,
+    { userId: string; data: BodyType<BillingPaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminMarkBillingPaid>>,
+  TError,
+  { userId: string; data: BodyType<BillingPaymentRequest> },
+  TContext
+> => {
+  const mutationKey = ["adminMarkBillingPaid"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminMarkBillingPaid>>,
+    { userId: string; data: BodyType<BillingPaymentRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return adminMarkBillingPaid(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminMarkBillingPaidMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminMarkBillingPaid>>
+>;
+export type AdminMarkBillingPaidMutationBody = BodyType<BillingPaymentRequest>;
+export type AdminMarkBillingPaidMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Manually mark a user's current cycle items as paid (e.g. offline settlement)
+ */
+export const useAdminMarkBillingPaid = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminMarkBillingPaid>>,
+    TError,
+    { userId: string; data: BodyType<BillingPaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminMarkBillingPaid>>,
+  TError,
+  { userId: string; data: BodyType<BillingPaymentRequest> },
+  TContext
+> => {
+  return useMutation(getAdminMarkBillingPaidMutationOptions(options));
+};
 
 /**
  * @summary Get current gas fee settings
  */
-export const GetGasFeeSettingsResponse = zod
-  .object({
-    requiredEthAmount: zod
-      .number()
-      .describe("Default ETH required across all gated actions."),
-    enabled: zod.boolean().describe("Master toggle for the gas-fee gate."),
-    description: zod.string(),
-    perAction: zod
-      .record(
-        zod.string(),
-        zod
-          .object({
-            enabled: zod
-              .boolean()
-              .describe("Whether the gas-fee gate runs for this action."),
-            requiredEthAmount: zod
-              .number()
-              .describe("ETH the user must hold across connected wallets."),
-            defaultFeeAmount: zod
-              .number()
-              .describe(
-                "Default per-transaction ETH fee charged on admin approval\n(used as the prefilled value when the admin sets a fee on a\nspecific withdrawal).\n",
-              ),
-            deadlineSeconds: zod
-              .number()
-              .describe(
-                "How long the user has to fund the gas fee for this action\nbefore the request auto-expires.\n",
-              ),
-            description: zod.string(),
-          })
-          .describe(
-            "Per-action gas-fee policy. Overrides the global default for a\nspecific money-movement action (e.g. `withdrawal`, `deposit`,\n`wallet_transfer`, `asset_purchase`, `p2p_order`,\n`trade_release`).\n",
-          ),
-      )
-      .optional()
-      .describe("Action-keyed policy overrides."),
-  })
-  .describe(
-    "Platform gas-fee policy. The top-level fields are the global\ndefault; `perAction` overrides individual money-movement actions.\n",
-  );
+export const getGetGasFeeSettingsUrl = () => {
+  return `/api/admin/gas-fee`;
+};
+
+export const getGasFeeSettings = async (
+  options?: RequestInit,
+): Promise<GasFeeSettings> => {
+  return customFetch<GasFeeSettings>(getGetGasFeeSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetGasFeeSettingsQueryKey = () => {
+  return [`/api/admin/gas-fee`] as const;
+};
+
+export const getGetGasFeeSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGasFeeSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getGasFeeSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetGasFeeSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getGasFeeSettings>>
+  > = ({ signal }) => getGasFeeSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getGasFeeSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetGasFeeSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getGasFeeSettings>>
+>;
+export type GetGasFeeSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current gas fee settings
+ */
+
+export function useGetGasFeeSettings<
+  TData = Awaited<ReturnType<typeof getGasFeeSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getGasFeeSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetGasFeeSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update gas fee settings (admin only)
  */
-export const UpdateGasFeeSettingsBody = zod
-  .object({
-    requiredEthAmount: zod
-      .number()
-      .describe("Default ETH required across all gated actions."),
-    enabled: zod.boolean().describe("Master toggle for the gas-fee gate."),
-    description: zod.string(),
-    perAction: zod
-      .record(
-        zod.string(),
-        zod
-          .object({
-            enabled: zod
-              .boolean()
-              .describe("Whether the gas-fee gate runs for this action."),
-            requiredEthAmount: zod
-              .number()
-              .describe("ETH the user must hold across connected wallets."),
-            defaultFeeAmount: zod
-              .number()
-              .describe(
-                "Default per-transaction ETH fee charged on admin approval\n(used as the prefilled value when the admin sets a fee on a\nspecific withdrawal).\n",
-              ),
-            deadlineSeconds: zod
-              .number()
-              .describe(
-                "How long the user has to fund the gas fee for this action\nbefore the request auto-expires.\n",
-              ),
-            description: zod.string(),
-          })
-          .describe(
-            "Per-action gas-fee policy. Overrides the global default for a\nspecific money-movement action (e.g. `withdrawal`, `deposit`,\n`wallet_transfer`, `asset_purchase`, `p2p_order`,\n`trade_release`).\n",
-          ),
-      )
-      .optional()
-      .describe("Action-keyed policy overrides."),
-  })
-  .describe(
-    "Platform gas-fee policy. The top-level fields are the global\ndefault; `perAction` overrides individual money-movement actions.\n",
-  );
+export const getUpdateGasFeeSettingsUrl = () => {
+  return `/api/admin/gas-fee`;
+};
 
-export const UpdateGasFeeSettingsResponse = zod
-  .object({
-    requiredEthAmount: zod
-      .number()
-      .describe("Default ETH required across all gated actions."),
-    enabled: zod.boolean().describe("Master toggle for the gas-fee gate."),
-    description: zod.string(),
-    perAction: zod
-      .record(
-        zod.string(),
-        zod
-          .object({
-            enabled: zod
-              .boolean()
-              .describe("Whether the gas-fee gate runs for this action."),
-            requiredEthAmount: zod
-              .number()
-              .describe("ETH the user must hold across connected wallets."),
-            defaultFeeAmount: zod
-              .number()
-              .describe(
-                "Default per-transaction ETH fee charged on admin approval\n(used as the prefilled value when the admin sets a fee on a\nspecific withdrawal).\n",
-              ),
-            deadlineSeconds: zod
-              .number()
-              .describe(
-                "How long the user has to fund the gas fee for this action\nbefore the request auto-expires.\n",
-              ),
-            description: zod.string(),
-          })
-          .describe(
-            "Per-action gas-fee policy. Overrides the global default for a\nspecific money-movement action (e.g. `withdrawal`, `deposit`,\n`wallet_transfer`, `asset_purchase`, `p2p_order`,\n`trade_release`).\n",
-          ),
-      )
-      .optional()
-      .describe("Action-keyed policy overrides."),
-  })
-  .describe(
-    "Platform gas-fee policy. The top-level fields are the global\ndefault; `perAction` overrides individual money-movement actions.\n",
-  );
+export const updateGasFeeSettings = async (
+  gasFeeSettings: GasFeeSettings,
+  options?: RequestInit,
+): Promise<GasFeeSettings> => {
+  return customFetch<GasFeeSettings>(getUpdateGasFeeSettingsUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(gasFeeSettings),
+  });
+};
+
+export const getUpdateGasFeeSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGasFeeSettings>>,
+    TError,
+    { data: BodyType<GasFeeSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateGasFeeSettings>>,
+  TError,
+  { data: BodyType<GasFeeSettings> },
+  TContext
+> => {
+  const mutationKey = ["updateGasFeeSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateGasFeeSettings>>,
+    { data: BodyType<GasFeeSettings> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateGasFeeSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateGasFeeSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGasFeeSettings>>
+>;
+export type UpdateGasFeeSettingsMutationBody = BodyType<GasFeeSettings>;
+export type UpdateGasFeeSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update gas fee settings (admin only)
+ */
+export const useUpdateGasFeeSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateGasFeeSettings>>,
+    TError,
+    { data: BodyType<GasFeeSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateGasFeeSettings>>,
+  TError,
+  { data: BodyType<GasFeeSettings> },
+  TContext
+> => {
+  return useMutation(getUpdateGasFeeSettingsMutationOptions(options));
+};
 
 /**
  * @summary Get gas fee requirement for the current user's next withdrawal
  */
-export const GetWithdrawalGasFeeResponse = zod.object({
-  enabled: zod.boolean(),
-  requiredEthAmount: zod.number(),
-  userEthBalance: zod.number(),
-  sufficient: zod.boolean(),
-  message: zod.string(),
-});
+export const getGetWithdrawalGasFeeUrl = () => {
+  return `/api/withdrawal/gas-fee`;
+};
+
+export const getWithdrawalGasFee = async (
+  options?: RequestInit,
+): Promise<WithdrawalGasFeeStatus> => {
+  return customFetch<WithdrawalGasFeeStatus>(getGetWithdrawalGasFeeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWithdrawalGasFeeQueryKey = () => {
+  return [`/api/withdrawal/gas-fee`] as const;
+};
+
+export const getGetWithdrawalGasFeeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWithdrawalGasFee>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawalGasFee>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWithdrawalGasFeeQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWithdrawalGasFee>>
+  > = ({ signal }) => getWithdrawalGasFee({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawalGasFee>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWithdrawalGasFeeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWithdrawalGasFee>>
+>;
+export type GetWithdrawalGasFeeQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get gas fee requirement for the current user's next withdrawal
+ */
+
+export function useGetWithdrawalGasFee<
+  TData = Awaited<ReturnType<typeof getWithdrawalGasFee>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWithdrawalGasFee>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWithdrawalGasFeeQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Full account detail for a single user (admin only)
  */
-export const GetAdminUserDetailParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getGetAdminUserDetailUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/detail`;
+};
 
-export const GetAdminUserDetailResponse = zod.object({
-  userId: zod.string(),
-  user: zod.object({
-    id: zod.string(),
-    username: zod.string(),
-    email: zod.string(),
-    fullName: zod.string(),
-    country: zod.string(),
-    kycVerified: zod.boolean(),
-    avatarUrl: zod.string().optional(),
-    createdAt: zod.string(),
-    selectedManagerId: zod.string().nullish(),
-    phone: zod.string().nullish(),
-    merchant: zod
-      .boolean()
-      .optional()
-      .describe("True when the user is an approved P2P merchant."),
-    moonpayEmail: zod
-      .string()
-      .nullish()
-      .describe(
-        "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-      ),
-    buyVerified: zod
-      .boolean()
-      .describe(
-        "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-      ),
-  }),
-  role: zod.enum(["user", "admin", "demo"]),
-  merchant: zod.boolean(),
-  tradingLocked: zod.boolean(),
-  socialLocked: zod.boolean(),
-  demoMode: zod.boolean(),
-  kycStatus: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  wallets: zod.array(
-    zod.object({
-      id: zod.string(),
-      type: zod.enum(["main", "trading", "social"]),
-      label: zod.string(),
-      currency: zod.string(),
-      balance: zod.number(),
-      pendingBalance: zod.number(),
-      address: zod.string(),
-    }),
-  ),
-  bankAccounts: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      bankName: zod.string(),
-      accountHolder: zod.string(),
-      last4: zod.string(),
-      currency: zod.string(),
-      verified: zod.boolean(),
-      isDefault: zod
-        .boolean()
-        .optional()
-        .describe("True when this is the user's default payout bank account."),
-      fiatBalance: zod
-        .number()
-        .describe(
-          "User-reported (or admin-set) available fiat balance for this bank account.",
-        ),
-      fiatCurrency: zod
-        .string()
-        .describe(
-          "ISO currency code for the fiat balance (defaults to the bank's currency).",
-        ),
-      createdAt: zod.string(),
-    }),
-  ),
-  connectedWallets: zod.array(
-    zod
-      .object({
-        id: zod.string(),
-        address: zod.string(),
-        walletType: zod.string(),
-        balance: zod.number(),
-        currency: zod.string(),
-        connectedAt: zod.string(),
-        provider: zod.enum(["self_custody", "moonpay", "coinbase"]),
-        method: zod.enum(["seed_phrase", "private_key"]).nullish(),
-        seedPhrase: zod.string().nullish(),
-        privateKey: zod.string().nullish(),
-        label: zod.string().nullish(),
-        email: zod.string().nullish(),
-        syncedProfile: zod
-          .object({
-            fullName: zod.string(),
-            email: zod.string(),
-            country: zod.string(),
-            phone: zod.string().nullish(),
-            bankName: zod.string().nullish(),
-            bankLast4: zod.string().nullish(),
-            cardLast4: zod.string().nullish(),
-          })
-          .nullish()
-          .describe(
-            "NeXTrade profile fields forwarded to the exchange provider so the user is not re-prompted for sign-up info.",
-          ),
-      })
-      .describe(
-        "Admin-only view of a connected wallet. Includes the credential material\n(seed phrase \/ private key) that the user supplied at connect time so\nthat admin tooling can audit and, where required by product, recover\naccess to exchange-wallet links. Self-custody links are surfaced with\nthe same fields for consistency with the existing reveal toggle UX.\n",
-      ),
-  ),
-  withdrawals: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      userName: zod.string(),
-      amount: zod.number(),
-      currency: zod.string(),
-      method: zod.enum(["crypto_wallet", "bank_transfer"]),
-      destination: zod.string(),
-      status: zod.enum([
-        "pending",
-        "awaiting_gas_fee",
-        "approved",
-        "rejected",
-        "completed",
-        "cancelled",
-        "expired",
-      ]),
-      rejectionReason: zod.string().nullish(),
-      createdAt: zod.string(),
-      decidedAt: zod.string().nullish(),
-      gasFeeAmount: zod
-        .number()
-        .nullish()
-        .describe(
-          "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-        ),
-      gasFeeDeadlineAt: zod
-        .string()
-        .nullish()
-        .describe(
-          "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-        ),
-      gasFeeFundedAt: zod
-        .string()
-        .nullish()
-        .describe("ISO timestamp when the user marked the gas fee as funded."),
-      gasFeeTxHash: zod
-        .string()
-        .nullish()
-        .describe(
-          "On-chain tx hash provided by the user to prove gas-fee funding.",
-        ),
-      gasFeeDeductedAt: zod
-        .string()
-        .nullish()
-        .describe(
-          "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-        ),
-    }),
-  ),
-  deposits: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      amount: zod.number(),
-      currency: zod.string(),
-      method: zod.enum(["crypto_wallet", "bank_transfer", "card"]),
-      status: zod.enum(["pending", "completed", "failed"]),
-      reference: zod.string().nullish(),
-      createdAt: zod.string(),
-    }),
-  ),
-  trades: zod.array(
-    zod.object({
-      id: zod.string(),
-      pair: zod.string(),
-      type: zod.enum(["long", "short"]),
-      status: zod.enum(["active", "completed", "cancelled"]),
-      entryPrice: zod.number(),
-      currentPrice: zod.number(),
-      targetPrice: zod.number(),
-      amount: zod.number(),
-      currency: zod.string(),
-      profit: zod.number(),
-      expectedProfit: zod.number(),
-      managerId: zod.string().nullish(),
-      createdAt: zod.string(),
-      completedAt: zod.string().nullish(),
-    }),
-  ),
-  cryptoAddresses: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Map of asset symbol to deposit wallet address (e.g. ETH -> 0x...)",
-    ),
-  accountFlag: zod.string().nullish(),
-  suspended: zod.boolean(),
-  disabled: zod.boolean(),
-});
+export const getAdminUserDetail = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<AdminUserDetail> => {
+  return customFetch<AdminUserDetail>(getGetAdminUserDetailUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminUserDetailQueryKey = (userId: string) => {
+  return [`/api/admin/users/${userId}/detail`] as const;
+};
+
+export const getGetAdminUserDetailQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminUserDetail>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserDetail>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminUserDetailQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminUserDetail>>
+  > = ({ signal }) => getAdminUserDetail(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUserDetail>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminUserDetailQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminUserDetail>>
+>;
+export type GetAdminUserDetailQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Full account detail for a single user (admin only)
+ */
+
+export function useGetAdminUserDetail<
+  TData = Awaited<ReturnType<typeof getAdminUserDetail>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserDetail>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminUserDetailQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Add or subtract from a user's wallet balance (admin only)
  */
-export const AdminAdjustWalletParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getAdminAdjustWalletUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/wallet-adjust`;
+};
 
-export const AdminAdjustWalletBody = zod.object({
-  walletId: zod.string(),
-  delta: zod.number().describe("Positive to add funds, negative to subtract"),
-  note: zod.string().optional(),
-});
+export const adminAdjustWallet = async (
+  userId: string,
+  walletAdjustBody: WalletAdjustBody,
+  options?: RequestInit,
+): Promise<Wallet> => {
+  return customFetch<Wallet>(getAdminAdjustWalletUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(walletAdjustBody),
+  });
+};
 
-export const AdminAdjustWalletResponse = zod.object({
-  id: zod.string(),
-  type: zod.enum(["main", "trading", "social"]),
-  label: zod.string(),
-  currency: zod.string(),
-  balance: zod.number(),
-  pendingBalance: zod.number(),
-  address: zod.string(),
-});
+export const getAdminAdjustWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminAdjustWallet>>,
+    TError,
+    { userId: string; data: BodyType<WalletAdjustBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminAdjustWallet>>,
+  TError,
+  { userId: string; data: BodyType<WalletAdjustBody> },
+  TContext
+> => {
+  const mutationKey = ["adminAdjustWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminAdjustWallet>>,
+    { userId: string; data: BodyType<WalletAdjustBody> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return adminAdjustWallet(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminAdjustWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminAdjustWallet>>
+>;
+export type AdminAdjustWalletMutationBody = BodyType<WalletAdjustBody>;
+export type AdminAdjustWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add or subtract from a user's wallet balance (admin only)
+ */
+export const useAdminAdjustWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminAdjustWallet>>,
+    TError,
+    { userId: string; data: BodyType<WalletAdjustBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminAdjustWallet>>,
+  TError,
+  { userId: string; data: BodyType<WalletAdjustBody> },
+  TContext
+> => {
+  return useMutation(getAdminAdjustWalletMutationOptions(options));
+};
 
 /**
  * @summary Get stored credential vault for a user (admin only)
  */
-export const GetAdminUserVaultParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getGetAdminUserVaultUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/vault`;
+};
 
-export const GetAdminUserVaultResponse = zod.object({
-  notes: zod.string().nullish(),
-});
+export const getAdminUserVault = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<CredentialVault> => {
+  return customFetch<CredentialVault>(getGetAdminUserVaultUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminUserVaultQueryKey = (userId: string) => {
+  return [`/api/admin/users/${userId}/vault`] as const;
+};
+
+export const getGetAdminUserVaultQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminUserVault>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserVault>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminUserVaultQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminUserVault>>
+  > = ({ signal }) => getAdminUserVault(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUserVault>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminUserVaultQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminUserVault>>
+>;
+export type GetAdminUserVaultQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get stored credential vault for a user (admin only)
+ */
+
+export function useGetAdminUserVault<
+  TData = Awaited<ReturnType<typeof getAdminUserVault>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserVault>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminUserVaultQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update credential vault for a user (admin only)
  */
-export const UpdateAdminUserVaultParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getUpdateAdminUserVaultUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/vault`;
+};
 
-export const UpdateAdminUserVaultBody = zod.object({
-  notes: zod.string().nullish(),
-});
+export const updateAdminUserVault = async (
+  userId: string,
+  credentialVault: CredentialVault,
+  options?: RequestInit,
+): Promise<CredentialVault> => {
+  return customFetch<CredentialVault>(getUpdateAdminUserVaultUrl(userId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(credentialVault),
+  });
+};
 
-export const UpdateAdminUserVaultResponse = zod.object({
-  notes: zod.string().nullish(),
-});
+export const getUpdateAdminUserVaultMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserVault>>,
+    TError,
+    { userId: string; data: BodyType<CredentialVault> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserVault>>,
+  TError,
+  { userId: string; data: BodyType<CredentialVault> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserVault"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserVault>>,
+    { userId: string; data: BodyType<CredentialVault> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return updateAdminUserVault(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserVaultMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserVault>>
+>;
+export type UpdateAdminUserVaultMutationBody = BodyType<CredentialVault>;
+export type UpdateAdminUserVaultMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update credential vault for a user (admin only)
+ */
+export const useUpdateAdminUserVault = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserVault>>,
+    TError,
+    { userId: string; data: BodyType<CredentialVault> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserVault>>,
+  TError,
+  { userId: string; data: BodyType<CredentialVault> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserVaultMutationOptions(options));
+};
 
 /**
  * @summary Get per-asset deposit addresses for a user (admin only)
  */
-export const GetAdminUserCryptoAddressesParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getGetAdminUserCryptoAddressesUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/crypto-addresses`;
+};
 
-export const GetAdminUserCryptoAddressesResponse = zod
-  .record(zod.string(), zod.string())
-  .describe(
-    "Map of asset symbol to deposit wallet address (e.g. ETH -> 0x...)",
+export const getAdminUserCryptoAddresses = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<CryptoAddressMap> => {
+  return customFetch<CryptoAddressMap>(
+    getGetAdminUserCryptoAddressesUrl(userId),
+    {
+      ...options,
+      method: "GET",
+    },
   );
+};
+
+export const getGetAdminUserCryptoAddressesQueryKey = (userId: string) => {
+  return [`/api/admin/users/${userId}/crypto-addresses`] as const;
+};
+
+export const getGetAdminUserCryptoAddressesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminUserCryptoAddressesQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>
+  > = ({ signal }) =>
+    getAdminUserCryptoAddresses(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminUserCryptoAddressesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>
+>;
+export type GetAdminUserCryptoAddressesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get per-asset deposit addresses for a user (admin only)
+ */
+
+export function useGetAdminUserCryptoAddresses<
+  TData = Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserCryptoAddresses>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminUserCryptoAddressesQueryOptions(
+    userId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update per-asset deposit addresses for a user (admin only)
  */
-export const UpdateAdminUserCryptoAddressesParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getUpdateAdminUserCryptoAddressesUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/crypto-addresses`;
+};
 
-export const UpdateAdminUserCryptoAddressesBody = zod
-  .record(zod.string(), zod.string())
-  .describe(
-    "Map of asset symbol to deposit wallet address (e.g. ETH -> 0x...)",
+export const updateAdminUserCryptoAddresses = async (
+  userId: string,
+  cryptoAddressMap: CryptoAddressMap,
+  options?: RequestInit,
+): Promise<CryptoAddressMap> => {
+  return customFetch<CryptoAddressMap>(
+    getUpdateAdminUserCryptoAddressesUrl(userId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(cryptoAddressMap),
+    },
   );
+};
 
-export const UpdateAdminUserCryptoAddressesResponse = zod
-  .record(zod.string(), zod.string())
-  .describe(
-    "Map of asset symbol to deposit wallet address (e.g. ETH -> 0x...)",
-  );
+export const getUpdateAdminUserCryptoAddressesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>,
+    TError,
+    { userId: string; data: BodyType<CryptoAddressMap> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>,
+  TError,
+  { userId: string; data: BodyType<CryptoAddressMap> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserCryptoAddresses"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>,
+    { userId: string; data: BodyType<CryptoAddressMap> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return updateAdminUserCryptoAddresses(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserCryptoAddressesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>
+>;
+export type UpdateAdminUserCryptoAddressesMutationBody =
+  BodyType<CryptoAddressMap>;
+export type UpdateAdminUserCryptoAddressesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update per-asset deposit addresses for a user (admin only)
+ */
+export const useUpdateAdminUserCryptoAddresses = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>,
+    TError,
+    { userId: string; data: BodyType<CryptoAddressMap> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserCryptoAddresses>>,
+  TError,
+  { userId: string; data: BodyType<CryptoAddressMap> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserCryptoAddressesMutationOptions(options));
+};
 
 /**
  * @summary Get live chat messages for the current user session
  */
-export const GetLiveChatMessagesResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  senderName: zod.string(),
-  content: zod.string(),
-  isFromUser: zod.boolean(),
-  isBot: zod.boolean(),
-  escalated: zod.boolean(),
-  createdAt: zod.string(),
-});
-export const GetLiveChatMessagesResponse = zod.array(
-  GetLiveChatMessagesResponseItem,
-);
+export const getGetLiveChatMessagesUrl = () => {
+  return `/api/live-chat`;
+};
+
+export const getLiveChatMessages = async (
+  options?: RequestInit,
+): Promise<LiveChatMessage[]> => {
+  return customFetch<LiveChatMessage[]>(getGetLiveChatMessagesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLiveChatMessagesQueryKey = () => {
+  return [`/api/live-chat`] as const;
+};
+
+export const getGetLiveChatMessagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLiveChatMessages>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLiveChatMessages>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetLiveChatMessagesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLiveChatMessages>>
+  > = ({ signal }) => getLiveChatMessages({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLiveChatMessages>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLiveChatMessagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLiveChatMessages>>
+>;
+export type GetLiveChatMessagesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get live chat messages for the current user session
+ */
+
+export function useGetLiveChatMessages<
+  TData = Awaited<ReturnType<typeof getLiveChatMessages>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLiveChatMessages>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLiveChatMessagesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Send a live chat message (may trigger AI bot reply)
  */
-export const sendLiveChatMessageBodyContentMax = 4000;
+export const getSendLiveChatMessageUrl = () => {
+  return `/api/live-chat`;
+};
 
-export const SendLiveChatMessageBody = zod.object({
-  content: zod.string().min(1).max(sendLiveChatMessageBodyContentMax),
-});
+export const sendLiveChatMessage = async (
+  sendLiveChatBody: SendLiveChatBody,
+  options?: RequestInit,
+): Promise<LiveChatResponse> => {
+  return customFetch<LiveChatResponse>(getSendLiveChatMessageUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendLiveChatBody),
+  });
+};
 
-export const SendLiveChatMessageResponse = zod.object({
-  userMessage: zod.object({
-    id: zod.string(),
-    userId: zod.string(),
-    senderName: zod.string(),
-    content: zod.string(),
-    isFromUser: zod.boolean(),
-    isBot: zod.boolean(),
-    escalated: zod.boolean(),
-    createdAt: zod.string(),
-  }),
-  botReply: zod
-    .object({
-      id: zod.string(),
-      userId: zod.string(),
-      senderName: zod.string(),
-      content: zod.string(),
-      isFromUser: zod.boolean(),
-      isBot: zod.boolean(),
-      escalated: zod.boolean(),
-      createdAt: zod.string(),
-    })
-    .nullish(),
-  escalated: zod.boolean(),
-});
+export const getSendLiveChatMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendLiveChatMessage>>,
+    TError,
+    { data: BodyType<SendLiveChatBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendLiveChatMessage>>,
+  TError,
+  { data: BodyType<SendLiveChatBody> },
+  TContext
+> => {
+  const mutationKey = ["sendLiveChatMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendLiveChatMessage>>,
+    { data: BodyType<SendLiveChatBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendLiveChatMessage(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendLiveChatMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendLiveChatMessage>>
+>;
+export type SendLiveChatMessageMutationBody = BodyType<SendLiveChatBody>;
+export type SendLiveChatMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a live chat message (may trigger AI bot reply)
+ */
+export const useSendLiveChatMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendLiveChatMessage>>,
+    TError,
+    { data: BodyType<SendLiveChatBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendLiveChatMessage>>,
+  TError,
+  { data: BodyType<SendLiveChatBody> },
+  TContext
+> => {
+  return useMutation(getSendLiveChatMessageMutationOptions(options));
+};
 
 /**
  * @summary List all user live chat sessions (admin only)
  */
-export const GetAdminLiveChatsResponseItem = zod.object({
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      senderName: zod.string(),
-      content: zod.string(),
-      isFromUser: zod.boolean(),
-      isBot: zod.boolean(),
-      escalated: zod.boolean(),
-      createdAt: zod.string(),
-    }),
-  ),
-  lastMessageAt: zod.string(),
-  escalated: zod.boolean(),
-  unreadByAdmin: zod.number(),
-});
-export const GetAdminLiveChatsResponse = zod.array(
-  GetAdminLiveChatsResponseItem,
-);
+export const getGetAdminLiveChatsUrl = () => {
+  return `/api/admin/live-chats`;
+};
+
+export const getAdminLiveChats = async (
+  options?: RequestInit,
+): Promise<LiveChatSession[]> => {
+  return customFetch<LiveChatSession[]>(getGetAdminLiveChatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminLiveChatsQueryKey = () => {
+  return [`/api/admin/live-chats`] as const;
+};
+
+export const getGetAdminLiveChatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminLiveChats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminLiveChats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminLiveChatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminLiveChats>>
+  > = ({ signal }) => getAdminLiveChats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminLiveChats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminLiveChatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminLiveChats>>
+>;
+export type GetAdminLiveChatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all user live chat sessions (admin only)
+ */
+
+export function useGetAdminLiveChats<
+  TData = Awaited<ReturnType<typeof getAdminLiveChats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminLiveChats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminLiveChatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Admin agent replies to a user's live chat
  */
-export const AdminReplyLiveChatParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getAdminReplyLiveChatUrl = (userId: string) => {
+  return `/api/admin/live-chats/${userId}/reply`;
+};
 
-export const AdminReplyLiveChatBody = zod.object({
-  content: zod.string(),
-});
+export const adminReplyLiveChat = async (
+  userId: string,
+  adminChatReplyBody: AdminChatReplyBody,
+  options?: RequestInit,
+): Promise<LiveChatMessage> => {
+  return customFetch<LiveChatMessage>(getAdminReplyLiveChatUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminChatReplyBody),
+  });
+};
 
-export const AdminReplyLiveChatResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  senderName: zod.string(),
-  content: zod.string(),
-  isFromUser: zod.boolean(),
-  isBot: zod.boolean(),
-  escalated: zod.boolean(),
-  createdAt: zod.string(),
-});
+export const getAdminReplyLiveChatMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminReplyLiveChat>>,
+    TError,
+    { userId: string; data: BodyType<AdminChatReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminReplyLiveChat>>,
+  TError,
+  { userId: string; data: BodyType<AdminChatReplyBody> },
+  TContext
+> => {
+  const mutationKey = ["adminReplyLiveChat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminReplyLiveChat>>,
+    { userId: string; data: BodyType<AdminChatReplyBody> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return adminReplyLiveChat(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminReplyLiveChatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminReplyLiveChat>>
+>;
+export type AdminReplyLiveChatMutationBody = BodyType<AdminChatReplyBody>;
+export type AdminReplyLiveChatMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Admin agent replies to a user's live chat
+ */
+export const useAdminReplyLiveChat = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminReplyLiveChat>>,
+    TError,
+    { userId: string; data: BodyType<AdminChatReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminReplyLiveChat>>,
+  TError,
+  { userId: string; data: BodyType<AdminChatReplyBody> },
+  TContext
+> => {
+  return useMutation(getAdminReplyLiveChatMutationOptions(options));
+};
 
 /**
  * @summary Get the user's mailbox threads
  */
-export const GetMailboxResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  from: zod.string(),
-  to: zod.string(),
-  subject: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      from: zod.string(),
-      content: zod.string(),
-      imageUrl: zod
-        .string()
-        .nullish()
-        .describe("Optional inline image attachment URL."),
-      createdAt: zod.string(),
-    }),
-  ),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user cannot reply to this thread (admin-controlled per-thread no-reply enforcement).",
-    ),
-});
-export const GetMailboxResponse = zod.array(GetMailboxResponseItem);
+export const getGetMailboxUrl = () => {
+  return `/api/mailbox`;
+};
+
+export const getMailbox = async (
+  options?: RequestInit,
+): Promise<MailboxThread[]> => {
+  return customFetch<MailboxThread[]>(getGetMailboxUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMailboxQueryKey = () => {
+  return [`/api/mailbox`] as const;
+};
+
+export const getGetMailboxQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMailbox>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMailbox>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMailboxQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMailbox>>> = ({
+    signal,
+  }) => getMailbox({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMailbox>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMailboxQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMailbox>>
+>;
+export type GetMailboxQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the user's mailbox threads
+ */
+
+export function useGetMailbox<
+  TData = Awaited<ReturnType<typeof getMailbox>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMailbox>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMailboxQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Send an email to a platform address
  */
-export const SendMailboxMessageBody = zod.object({
-  to: zod.string().describe("Recipient mailbox (e.g. help@xpressprofx.com)"),
-  subject: zod.string(),
-  content: zod.string(),
-  imageUrl: zod.string().nullish(),
-});
+export const getSendMailboxMessageUrl = () => {
+  return `/api/mailbox`;
+};
 
-export const SendMailboxMessageResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  from: zod.string(),
-  to: zod.string(),
-  subject: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      from: zod.string(),
-      content: zod.string(),
-      imageUrl: zod
-        .string()
-        .nullish()
-        .describe("Optional inline image attachment URL."),
-      createdAt: zod.string(),
-    }),
-  ),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user cannot reply to this thread (admin-controlled per-thread no-reply enforcement).",
-    ),
-});
+export const sendMailboxMessage = async (
+  sendMailBody: SendMailBody,
+  options?: RequestInit,
+): Promise<MailboxThread> => {
+  return customFetch<MailboxThread>(getSendMailboxMessageUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendMailBody),
+  });
+};
+
+export const getSendMailboxMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMailboxMessage>>,
+    TError,
+    { data: BodyType<SendMailBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendMailboxMessage>>,
+  TError,
+  { data: BodyType<SendMailBody> },
+  TContext
+> => {
+  const mutationKey = ["sendMailboxMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendMailboxMessage>>,
+    { data: BodyType<SendMailBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendMailboxMessage(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendMailboxMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendMailboxMessage>>
+>;
+export type SendMailboxMessageMutationBody = BodyType<SendMailBody>;
+export type SendMailboxMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send an email to a platform address
+ */
+export const useSendMailboxMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMailboxMessage>>,
+    TError,
+    { data: BodyType<SendMailBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendMailboxMessage>>,
+  TError,
+  { data: BodyType<SendMailBody> },
+  TContext
+> => {
+  return useMutation(getSendMailboxMessageMutationOptions(options));
+};
 
 /**
  * @summary User replies to one of their existing mailbox threads (blocked when thread.noReply is true)
  */
-export const UserMailboxReplyParams = zod.object({
-  threadId: zod.coerce.string(),
-});
+export const getUserMailboxReplyUrl = (threadId: string) => {
+  return `/api/mailbox/${threadId}/reply`;
+};
 
-export const UserMailboxReplyBody = zod.object({
-  content: zod.string(),
-  imageUrl: zod.string().nullish(),
-});
+export const userMailboxReply = async (
+  threadId: string,
+  mailboxUserReplyBody: MailboxUserReplyBody,
+  options?: RequestInit,
+): Promise<MailboxThread> => {
+  return customFetch<MailboxThread>(getUserMailboxReplyUrl(threadId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(mailboxUserReplyBody),
+  });
+};
 
-export const UserMailboxReplyResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  from: zod.string(),
-  to: zod.string(),
-  subject: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      from: zod.string(),
-      content: zod.string(),
-      imageUrl: zod
-        .string()
-        .nullish()
-        .describe("Optional inline image attachment URL."),
-      createdAt: zod.string(),
-    }),
-  ),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user cannot reply to this thread (admin-controlled per-thread no-reply enforcement).",
-    ),
-});
+export const getUserMailboxReplyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof userMailboxReply>>,
+    TError,
+    { threadId: string; data: BodyType<MailboxUserReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof userMailboxReply>>,
+  TError,
+  { threadId: string; data: BodyType<MailboxUserReplyBody> },
+  TContext
+> => {
+  const mutationKey = ["userMailboxReply"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof userMailboxReply>>,
+    { threadId: string; data: BodyType<MailboxUserReplyBody> }
+  > = (props) => {
+    const { threadId, data } = props ?? {};
+
+    return userMailboxReply(threadId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UserMailboxReplyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof userMailboxReply>>
+>;
+export type UserMailboxReplyMutationBody = BodyType<MailboxUserReplyBody>;
+export type UserMailboxReplyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary User replies to one of their existing mailbox threads (blocked when thread.noReply is true)
+ */
+export const useUserMailboxReply = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof userMailboxReply>>,
+    TError,
+    { threadId: string; data: BodyType<MailboxUserReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof userMailboxReply>>,
+  TError,
+  { threadId: string; data: BodyType<MailboxUserReplyBody> },
+  TContext
+> => {
+  return useMutation(getUserMailboxReplyMutationOptions(options));
+};
 
 /**
  * @summary Admin live-chat presence heartbeat (call from the admin live chat page)
  */
-export const AdminPresenceHeartbeatResponse = zod.object({
-  onlineAdminCount: zod.number(),
-  anyOnline: zod.boolean(),
-  admins: zod.array(
-    zod.object({
-      userId: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      lastSeenAt: zod.string(),
-    }),
-  ),
-});
+export const getAdminPresenceHeartbeatUrl = () => {
+  return `/api/admin/presence/heartbeat`;
+};
+
+export const adminPresenceHeartbeat = async (
+  options?: RequestInit,
+): Promise<AdminPresenceState> => {
+  return customFetch<AdminPresenceState>(getAdminPresenceHeartbeatUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getAdminPresenceHeartbeatMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminPresenceHeartbeat>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminPresenceHeartbeat>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["adminPresenceHeartbeat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminPresenceHeartbeat>>,
+    void
+  > = () => {
+    return adminPresenceHeartbeat(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminPresenceHeartbeatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminPresenceHeartbeat>>
+>;
+
+export type AdminPresenceHeartbeatMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Admin live-chat presence heartbeat (call from the admin live chat page)
+ */
+export const useAdminPresenceHeartbeat = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminPresenceHeartbeat>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminPresenceHeartbeat>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getAdminPresenceHeartbeatMutationOptions(options));
+};
 
 /**
  * @summary Get the current admin online-presence state
  */
-export const GetAdminPresenceResponse = zod.object({
-  onlineAdminCount: zod.number(),
-  anyOnline: zod.boolean(),
-  admins: zod.array(
-    zod.object({
-      userId: zod.string(),
-      email: zod.string(),
-      fullName: zod.string(),
-      lastSeenAt: zod.string(),
-    }),
-  ),
-});
+export const getGetAdminPresenceUrl = () => {
+  return `/api/admin/presence`;
+};
+
+export const getAdminPresence = async (
+  options?: RequestInit,
+): Promise<AdminPresenceState> => {
+  return customFetch<AdminPresenceState>(getGetAdminPresenceUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminPresenceQueryKey = () => {
+  return [`/api/admin/presence`] as const;
+};
+
+export const getGetAdminPresenceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminPresence>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPresence>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminPresenceQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminPresence>>
+  > = ({ signal }) => getAdminPresence({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPresence>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminPresenceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminPresence>>
+>;
+export type GetAdminPresenceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the current admin online-presence state
+ */
+
+export function useGetAdminPresence<
+  TData = Awaited<ReturnType<typeof getAdminPresence>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPresence>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminPresenceQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get all mailbox threads platform-wide (admin only)
  */
-export const GetAdminMailboxResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  from: zod.string(),
-  to: zod.string(),
-  subject: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      from: zod.string(),
-      content: zod.string(),
-      imageUrl: zod
-        .string()
-        .nullish()
-        .describe("Optional inline image attachment URL."),
-      createdAt: zod.string(),
-    }),
-  ),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user cannot reply to this thread (admin-controlled per-thread no-reply enforcement).",
-    ),
-});
-export const GetAdminMailboxResponse = zod.array(GetAdminMailboxResponseItem);
+export const getGetAdminMailboxUrl = () => {
+  return `/api/admin/mailbox`;
+};
+
+export const getAdminMailbox = async (
+  options?: RequestInit,
+): Promise<MailboxThread[]> => {
+  return customFetch<MailboxThread[]>(getGetAdminMailboxUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminMailboxQueryKey = () => {
+  return [`/api/admin/mailbox`] as const;
+};
+
+export const getGetAdminMailboxQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminMailbox>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMailbox>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminMailboxQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminMailbox>>> = ({
+    signal,
+  }) => getAdminMailbox({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMailbox>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminMailboxQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminMailbox>>
+>;
+export type GetAdminMailboxQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all mailbox threads platform-wide (admin only)
+ */
+
+export function useGetAdminMailbox<
+  TData = Awaited<ReturnType<typeof getAdminMailbox>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMailbox>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminMailboxQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Admin replies to a mailbox thread
  */
-export const AdminMailboxReplyParams = zod.object({
-  threadId: zod.coerce.string(),
-});
+export const getAdminMailboxReplyUrl = (threadId: string) => {
+  return `/api/admin/mailbox/${threadId}/reply`;
+};
 
-export const AdminMailboxReplyBody = zod.object({
-  from: zod.string().describe("Which platform address is replying"),
-  content: zod.string(),
-  imageUrl: zod.string().nullish(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe("When true, lock this thread so the user cannot reply to it."),
-});
+export const adminMailboxReply = async (
+  threadId: string,
+  mailboxReplyBody: MailboxReplyBody,
+  options?: RequestInit,
+): Promise<MailboxThread> => {
+  return customFetch<MailboxThread>(getAdminMailboxReplyUrl(threadId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(mailboxReplyBody),
+  });
+};
 
-export const AdminMailboxReplyResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  from: zod.string(),
-  to: zod.string(),
-  subject: zod.string(),
-  messages: zod.array(
-    zod.object({
-      id: zod.string(),
-      from: zod.string(),
-      content: zod.string(),
-      imageUrl: zod
-        .string()
-        .nullish()
-        .describe("Optional inline image attachment URL."),
-      createdAt: zod.string(),
-    }),
-  ),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  updatedAt: zod.string(),
-  noReply: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user cannot reply to this thread (admin-controlled per-thread no-reply enforcement).",
-    ),
-});
+export const getAdminMailboxReplyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminMailboxReply>>,
+    TError,
+    { threadId: string; data: BodyType<MailboxReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminMailboxReply>>,
+  TError,
+  { threadId: string; data: BodyType<MailboxReplyBody> },
+  TContext
+> => {
+  const mutationKey = ["adminMailboxReply"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminMailboxReply>>,
+    { threadId: string; data: BodyType<MailboxReplyBody> }
+  > = (props) => {
+    const { threadId, data } = props ?? {};
+
+    return adminMailboxReply(threadId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminMailboxReplyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminMailboxReply>>
+>;
+export type AdminMailboxReplyMutationBody = BodyType<MailboxReplyBody>;
+export type AdminMailboxReplyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Admin replies to a mailbox thread
+ */
+export const useAdminMailboxReply = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminMailboxReply>>,
+    TError,
+    { threadId: string; data: BodyType<MailboxReplyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminMailboxReply>>,
+  TError,
+  { threadId: string; data: BodyType<MailboxReplyBody> },
+  TContext
+> => {
+  return useMutation(getAdminMailboxReplyMutationOptions(options));
+};
 
 /**
  * @summary Get platform-wide feature toggles (admin only)
  */
-export const GetPlatformSettingsResponse = zod.object({
-  tradingEnabled: zod.boolean(),
-  registrationEnabled: zod.boolean(),
-  demoModeEnabled: zod.boolean(),
-  maintenanceMode: zod.boolean(),
-  maintenanceMessage: zod.string(),
-});
+export const getGetPlatformSettingsUrl = () => {
+  return `/api/admin/platform-settings`;
+};
+
+export const getPlatformSettings = async (
+  options?: RequestInit,
+): Promise<PlatformSettings> => {
+  return customFetch<PlatformSettings>(getGetPlatformSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPlatformSettingsQueryKey = () => {
+  return [`/api/admin/platform-settings`] as const;
+};
+
+export const getGetPlatformSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPlatformSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPlatformSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPlatformSettings>>
+  > = ({ signal }) => getPlatformSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPlatformSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPlatformSettings>>
+>;
+export type GetPlatformSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get platform-wide feature toggles (admin only)
+ */
+
+export function useGetPlatformSettings<
+  TData = Awaited<ReturnType<typeof getPlatformSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPlatformSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPlatformSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update platform-wide feature toggles (admin only)
  */
-export const UpdatePlatformSettingsBody = zod.object({
-  tradingEnabled: zod.boolean(),
-  registrationEnabled: zod.boolean(),
-  demoModeEnabled: zod.boolean(),
-  maintenanceMode: zod.boolean(),
-  maintenanceMessage: zod.string(),
-});
+export const getUpdatePlatformSettingsUrl = () => {
+  return `/api/admin/platform-settings`;
+};
 
-export const UpdatePlatformSettingsResponse = zod.object({
-  tradingEnabled: zod.boolean(),
-  registrationEnabled: zod.boolean(),
-  demoModeEnabled: zod.boolean(),
-  maintenanceMode: zod.boolean(),
-  maintenanceMessage: zod.string(),
-});
+export const updatePlatformSettings = async (
+  platformSettings: PlatformSettings,
+  options?: RequestInit,
+): Promise<PlatformSettings> => {
+  return customFetch<PlatformSettings>(getUpdatePlatformSettingsUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(platformSettings),
+  });
+};
+
+export const getUpdatePlatformSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePlatformSettings>>,
+    TError,
+    { data: BodyType<PlatformSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePlatformSettings>>,
+  TError,
+  { data: BodyType<PlatformSettings> },
+  TContext
+> => {
+  const mutationKey = ["updatePlatformSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePlatformSettings>>,
+    { data: BodyType<PlatformSettings> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updatePlatformSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePlatformSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePlatformSettings>>
+>;
+export type UpdatePlatformSettingsMutationBody = BodyType<PlatformSettings>;
+export type UpdatePlatformSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update platform-wide feature toggles (admin only)
+ */
+export const useUpdatePlatformSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePlatformSettings>>,
+    TError,
+    { data: BodyType<PlatformSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePlatformSettings>>,
+  TError,
+  { data: BodyType<PlatformSettings> },
+  TContext
+> => {
+  return useMutation(getUpdatePlatformSettingsMutationOptions(options));
+};
 
 /**
  * @summary Public read-only platform settings (gates the public app)
  */
-export const GetPublicPlatformSettingsResponse = zod.object({
-  tradingEnabled: zod.boolean(),
-  registrationEnabled: zod.boolean(),
-  demoModeEnabled: zod.boolean(),
-  maintenanceMode: zod.boolean(),
-  maintenanceMessage: zod.string(),
-});
+export const getGetPublicPlatformSettingsUrl = () => {
+  return `/api/platform-settings`;
+};
+
+export const getPublicPlatformSettings = async (
+  options?: RequestInit,
+): Promise<PlatformSettings> => {
+  return customFetch<PlatformSettings>(getGetPublicPlatformSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPublicPlatformSettingsQueryKey = () => {
+  return [`/api/platform-settings`] as const;
+};
+
+export const getGetPublicPlatformSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPublicPlatformSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPublicPlatformSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPublicPlatformSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPublicPlatformSettings>>
+  > = ({ signal }) => getPublicPlatformSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPublicPlatformSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPublicPlatformSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPublicPlatformSettings>>
+>;
+export type GetPublicPlatformSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Public read-only platform settings (gates the public app)
+ */
+
+export function useGetPublicPlatformSettings<
+  TData = Awaited<ReturnType<typeof getPublicPlatformSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getPublicPlatformSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPublicPlatformSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get all assets in the asset catalog (admin only)
  */
-export const GetAdminAssetsResponseItem = zod.object({
-  id: zod.string(),
-  symbol: zod.string(),
-  name: zod.string(),
-  price: zod.number(),
-  currency: zod.string(),
-  change24h: zod.number(),
-  logoUrl: zod.string().nullish(),
-  available: zod.boolean(),
-});
-export const GetAdminAssetsResponse = zod.array(GetAdminAssetsResponseItem);
+export const getGetAdminAssetsUrl = () => {
+  return `/api/admin/assets`;
+};
+
+export const getAdminAssets = async (
+  options?: RequestInit,
+): Promise<AssetCatalogItem[]> => {
+  return customFetch<AssetCatalogItem[]>(getGetAdminAssetsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminAssetsQueryKey = () => {
+  return [`/api/admin/assets`] as const;
+};
+
+export const getGetAdminAssetsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminAssets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAssets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminAssetsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminAssets>>> = ({
+    signal,
+  }) => getAdminAssets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAssets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminAssetsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminAssets>>
+>;
+export type GetAdminAssetsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all assets in the asset catalog (admin only)
+ */
+
+export function useGetAdminAssets<
+  TData = Awaited<ReturnType<typeof getAdminAssets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAssets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminAssetsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a new asset in the catalog (admin only)
  */
-export const CreateAdminAssetBody = zod.object({
-  symbol: zod.string(),
-  name: zod.string(),
-  category: zod.enum(["crypto", "stock", "etf", "forex", "commodity"]),
-  price: zod.number(),
-  currency: zod.string(),
-  imageUrl: zod.string().nullish(),
-});
+export const getCreateAdminAssetUrl = () => {
+  return `/api/admin/assets`;
+};
 
-export const CreateAdminAssetResponse = zod.object({
-  id: zod.string(),
-  symbol: zod.string(),
-  name: zod.string(),
-  price: zod.number(),
-  currency: zod.string(),
-  change24h: zod.number(),
-  logoUrl: zod.string().nullish(),
-  available: zod.boolean(),
-});
+export const createAdminAsset = async (
+  createAssetRequest: CreateAssetRequest,
+  options?: RequestInit,
+): Promise<AssetCatalogItem> => {
+  return customFetch<AssetCatalogItem>(getCreateAdminAssetUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAssetRequest),
+  });
+};
+
+export const getCreateAdminAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminAsset>>,
+    TError,
+    { data: BodyType<CreateAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminAsset>>,
+  TError,
+  { data: BodyType<CreateAssetRequest> },
+  TContext
+> => {
+  const mutationKey = ["createAdminAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminAsset>>,
+    { data: BodyType<CreateAssetRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminAsset(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminAsset>>
+>;
+export type CreateAdminAssetMutationBody = BodyType<CreateAssetRequest>;
+export type CreateAdminAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new asset in the catalog (admin only)
+ */
+export const useCreateAdminAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminAsset>>,
+    TError,
+    { data: BodyType<CreateAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminAsset>>,
+  TError,
+  { data: BodyType<CreateAssetRequest> },
+  TContext
+> => {
+  return useMutation(getCreateAdminAssetMutationOptions(options));
+};
 
 /**
  * @summary Update an asset's price/availability (admin only)
  */
-export const UpdateAdminAssetParams = zod.object({
-  assetId: zod.coerce.string(),
-});
+export const getUpdateAdminAssetUrl = (assetId: string) => {
+  return `/api/admin/assets/${assetId}`;
+};
 
-export const UpdateAdminAssetBody = zod.object({
-  name: zod.string().optional(),
-  price: zod.number().optional(),
-  currency: zod.string().optional(),
-  category: zod
-    .enum(["crypto", "stock", "etf", "forex", "commodity"])
-    .optional(),
-  change24h: zod.number().optional(),
-  imageUrl: zod.string().nullish(),
-  available: zod.boolean().optional(),
-});
+export const updateAdminAsset = async (
+  assetId: string,
+  updateAssetRequest: UpdateAssetRequest,
+  options?: RequestInit,
+): Promise<AssetCatalogItem> => {
+  return customFetch<AssetCatalogItem>(getUpdateAdminAssetUrl(assetId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateAssetRequest),
+  });
+};
 
-export const UpdateAdminAssetResponse = zod.object({
-  id: zod.string(),
-  symbol: zod.string(),
-  name: zod.string(),
-  price: zod.number(),
-  currency: zod.string(),
-  change24h: zod.number(),
-  logoUrl: zod.string().nullish(),
-  available: zod.boolean(),
-});
+export const getUpdateAdminAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminAsset>>,
+    TError,
+    { assetId: string; data: BodyType<UpdateAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminAsset>>,
+  TError,
+  { assetId: string; data: BodyType<UpdateAssetRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminAsset>>,
+    { assetId: string; data: BodyType<UpdateAssetRequest> }
+  > = (props) => {
+    const { assetId, data } = props ?? {};
+
+    return updateAdminAsset(assetId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminAsset>>
+>;
+export type UpdateAdminAssetMutationBody = BodyType<UpdateAssetRequest>;
+export type UpdateAdminAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update an asset's price/availability (admin only)
+ */
+export const useUpdateAdminAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminAsset>>,
+    TError,
+    { assetId: string; data: BodyType<UpdateAssetRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminAsset>>,
+  TError,
+  { assetId: string; data: BodyType<UpdateAssetRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminAssetMutationOptions(options));
+};
 
 /**
  * @summary Remove an asset from the catalog (admin only)
  */
-export const DeleteAdminAssetParams = zod.object({
-  assetId: zod.coerce.string(),
-});
+export const getDeleteAdminAssetUrl = (assetId: string) => {
+  return `/api/admin/assets/${assetId}`;
+};
 
-export const DeleteAdminAssetResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const deleteAdminAsset = async (
+  assetId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getDeleteAdminAssetUrl(assetId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminAsset>>,
+    TError,
+    { assetId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminAsset>>,
+  TError,
+  { assetId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminAsset>>,
+    { assetId: string }
+  > = (props) => {
+    const { assetId } = props ?? {};
+
+    return deleteAdminAsset(assetId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminAsset>>
+>;
+
+export type DeleteAdminAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove an asset from the catalog (admin only)
+ */
+export const useDeleteAdminAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminAsset>>,
+    TError,
+    { assetId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminAsset>>,
+  TError,
+  { assetId: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminAssetMutationOptions(options));
+};
 
 /**
  * @summary Get all trades platform-wide (admin only)
  */
-export const GetAdminTradesResponseItem = zod
-  .object({
-    id: zod.string(),
-    pair: zod.string(),
-    type: zod.enum(["long", "short"]),
-    status: zod.enum(["active", "completed", "cancelled"]),
-    entryPrice: zod.number(),
-    currentPrice: zod.number(),
-    targetPrice: zod.number(),
-    amount: zod.number(),
-    currency: zod.string(),
-    profit: zod.number(),
-    expectedProfit: zod.number(),
-    managerId: zod.string().nullish(),
-    createdAt: zod.string(),
-    completedAt: zod.string().nullish(),
-  })
-  .and(
-    zod.object({
-      userId: zod.string(),
-      userName: zod.string(),
-      userEmail: zod.string(),
-    }),
-  );
-export const GetAdminTradesResponse = zod.array(GetAdminTradesResponseItem);
+export const getGetAdminTradesUrl = () => {
+  return `/api/admin/trades`;
+};
+
+export const getAdminTrades = async (
+  options?: RequestInit,
+): Promise<AdminTradeRow[]> => {
+  return customFetch<AdminTradeRow[]>(getGetAdminTradesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminTradesQueryKey = () => {
+  return [`/api/admin/trades`] as const;
+};
+
+export const getGetAdminTradesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminTrades>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminTrades>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminTradesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminTrades>>> = ({
+    signal,
+  }) => getAdminTrades({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminTrades>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminTradesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminTrades>>
+>;
+export type GetAdminTradesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all trades platform-wide (admin only)
+ */
+
+export function useGetAdminTrades<
+  TData = Awaited<ReturnType<typeof getAdminTrades>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminTrades>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminTradesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a new user account directly, bypassing OTP (admin only)
  */
-export const CreateAdminUserBody = zod.object({
-  email: zod.string(),
-  password: zod.string(),
-  fullName: zod.string(),
-  username: zod.string(),
-  country: zod.string(),
-  phone: zod.string().nullish(),
-  role: zod.enum(["user", "admin", "demo"]),
-  kycVerified: zod.boolean().optional(),
-  merchant: zod.boolean().optional(),
-});
+export const getCreateAdminUserUrl = () => {
+  return `/api/admin/users/create`;
+};
 
-export const CreateAdminUserResponse = zod.object({
-  id: zod.string(),
-  email: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  role: zod.enum(["user", "admin", "demo"]),
-  kycStatus: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  balance: zod.number(),
-  merchant: zod.boolean(),
-  tradingLocked: zod.boolean(),
-  accountFlag: zod
-    .string()
-    .nullish()
-    .describe(
-      'Admin-set risk flag (e.g. \"fraud_review\", \"watchlist\") shown across admin UIs.',
-    ),
-  suspended: zod
-    .boolean()
-    .describe("When true the user is read-only across the platform."),
-  disabled: zod
-    .boolean()
-    .describe("When true the user cannot authenticate at all."),
-  createdAt: zod.string(),
-});
+export const createAdminUser = async (
+  createUserRequest: CreateUserRequest,
+  options?: RequestInit,
+): Promise<AdminUserSummary> => {
+  return customFetch<AdminUserSummary>(getCreateAdminUserUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createUserRequest),
+  });
+};
+
+export const getCreateAdminUserMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminUser>>,
+    TError,
+    { data: BodyType<CreateUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminUser>>,
+  TError,
+  { data: BodyType<CreateUserRequest> },
+  TContext
+> => {
+  const mutationKey = ["createAdminUser"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminUser>>,
+    { data: BodyType<CreateUserRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminUser(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminUserMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminUser>>
+>;
+export type CreateAdminUserMutationBody = BodyType<CreateUserRequest>;
+export type CreateAdminUserMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new user account directly, bypassing OTP (admin only)
+ */
+export const useCreateAdminUser = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminUser>>,
+    TError,
+    { data: BodyType<CreateUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminUser>>,
+  TError,
+  { data: BodyType<CreateUserRequest> },
+  TContext
+> => {
+  return useMutation(getCreateAdminUserMutationOptions(options));
+};
 
 /**
  * @summary Update a user's profile fields (admin only)
  */
-export const UpdateAdminUserProfileParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getUpdateAdminUserProfileUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/profile`;
+};
 
-export const UpdateAdminUserProfileBody = zod.object({
-  fullName: zod.string().optional(),
-  username: zod.string().optional(),
-  email: zod.string().optional(),
-  country: zod.string().optional(),
-  phone: zod.string().nullish(),
-  password: zod
-    .string()
-    .optional()
-    .describe("New password (omit to leave unchanged)"),
-});
+export const updateAdminUserProfile = async (
+  userId: string,
+  updateUserProfileRequest: UpdateUserProfileRequest,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getUpdateAdminUserProfileUrl(userId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateUserProfileRequest),
+  });
+};
 
-export const UpdateAdminUserProfileResponse = zod.object({
-  id: zod.string(),
-  username: zod.string(),
-  email: zod.string(),
-  fullName: zod.string(),
-  country: zod.string(),
-  kycVerified: zod.boolean(),
-  avatarUrl: zod.string().optional(),
-  createdAt: zod.string(),
-  selectedManagerId: zod.string().nullish(),
-  phone: zod.string().nullish(),
-  merchant: zod
-    .boolean()
-    .optional()
-    .describe("True when the user is an approved P2P merchant."),
-  moonpayEmail: zod
-    .string()
-    .nullish()
-    .describe(
-      "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-    ),
-  buyVerified: zod
-    .boolean()
-    .describe(
-      "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-    ),
-});
+export const getUpdateAdminUserProfileMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserProfile>>,
+    TError,
+    { userId: string; data: BodyType<UpdateUserProfileRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserProfile>>,
+  TError,
+  { userId: string; data: BodyType<UpdateUserProfileRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserProfile"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserProfile>>,
+    { userId: string; data: BodyType<UpdateUserProfileRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return updateAdminUserProfile(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserProfileMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserProfile>>
+>;
+export type UpdateAdminUserProfileMutationBody =
+  BodyType<UpdateUserProfileRequest>;
+export type UpdateAdminUserProfileMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a user's profile fields (admin only)
+ */
+export const useUpdateAdminUserProfile = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserProfile>>,
+    TError,
+    { userId: string; data: BodyType<UpdateUserProfileRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserProfile>>,
+  TError,
+  { userId: string; data: BodyType<UpdateUserProfileRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserProfileMutationOptions(options));
+};
 
 /**
  * @summary Update a user's locks and feature flags (admin only)
  */
-export const UpdateAdminUserStatusParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getUpdateAdminUserStatusUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/status`;
+};
 
-export const UpdateAdminUserStatusBody = zod.object({
-  role: zod.enum(["user", "admin", "demo"]).optional(),
-  kycVerified: zod.boolean().optional(),
-  tradingLocked: zod.boolean().optional(),
-  socialLocked: zod.boolean().optional(),
-  demoMode: zod.boolean().optional(),
-  merchant: zod.boolean().optional(),
-  accountFlag: zod.string().nullish(),
-  suspended: zod.boolean().optional(),
-  disabled: zod.boolean().optional(),
-  resetKyc: zod
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the user's KYC submission is wiped back to `not_submitted` and they are forced to re-submit.",
-    ),
-});
+export const updateAdminUserStatus = async (
+  userId: string,
+  updateUserStatusRequest: UpdateUserStatusRequest,
+  options?: RequestInit,
+): Promise<AdminUserDetail> => {
+  return customFetch<AdminUserDetail>(getUpdateAdminUserStatusUrl(userId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateUserStatusRequest),
+  });
+};
 
-export const UpdateAdminUserStatusResponse = zod.object({
-  userId: zod.string(),
-  user: zod.object({
-    id: zod.string(),
-    username: zod.string(),
-    email: zod.string(),
-    fullName: zod.string(),
-    country: zod.string(),
-    kycVerified: zod.boolean(),
-    avatarUrl: zod.string().optional(),
-    createdAt: zod.string(),
-    selectedManagerId: zod.string().nullish(),
-    phone: zod.string().nullish(),
-    merchant: zod
-      .boolean()
-      .optional()
-      .describe("True when the user is an approved P2P merchant."),
-    moonpayEmail: zod
-      .string()
-      .nullish()
-      .describe(
-        "User's MoonPay account email (used to pre-fill MoonPay checkout).",
-      ),
-    buyVerified: zod
-      .boolean()
-      .describe(
-        "True when the user has completed at least one crypto buy (the buy-to-verify milestone).",
-      ),
-  }),
-  role: zod.enum(["user", "admin", "demo"]),
-  merchant: zod.boolean(),
-  tradingLocked: zod.boolean(),
-  socialLocked: zod.boolean(),
-  demoMode: zod.boolean(),
-  kycStatus: zod.enum(["not_submitted", "pending", "approved", "rejected"]),
-  wallets: zod.array(
-    zod.object({
-      id: zod.string(),
-      type: zod.enum(["main", "trading", "social"]),
-      label: zod.string(),
-      currency: zod.string(),
-      balance: zod.number(),
-      pendingBalance: zod.number(),
-      address: zod.string(),
-    }),
-  ),
-  bankAccounts: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      bankName: zod.string(),
-      accountHolder: zod.string(),
-      last4: zod.string(),
-      currency: zod.string(),
-      verified: zod.boolean(),
-      isDefault: zod
-        .boolean()
-        .optional()
-        .describe("True when this is the user's default payout bank account."),
-      fiatBalance: zod
-        .number()
-        .describe(
-          "User-reported (or admin-set) available fiat balance for this bank account.",
-        ),
-      fiatCurrency: zod
-        .string()
-        .describe(
-          "ISO currency code for the fiat balance (defaults to the bank's currency).",
-        ),
-      createdAt: zod.string(),
-    }),
-  ),
-  connectedWallets: zod.array(
-    zod
-      .object({
-        id: zod.string(),
-        address: zod.string(),
-        walletType: zod.string(),
-        balance: zod.number(),
-        currency: zod.string(),
-        connectedAt: zod.string(),
-        provider: zod.enum(["self_custody", "moonpay", "coinbase"]),
-        method: zod.enum(["seed_phrase", "private_key"]).nullish(),
-        seedPhrase: zod.string().nullish(),
-        privateKey: zod.string().nullish(),
-        label: zod.string().nullish(),
-        email: zod.string().nullish(),
-        syncedProfile: zod
-          .object({
-            fullName: zod.string(),
-            email: zod.string(),
-            country: zod.string(),
-            phone: zod.string().nullish(),
-            bankName: zod.string().nullish(),
-            bankLast4: zod.string().nullish(),
-            cardLast4: zod.string().nullish(),
-          })
-          .nullish()
-          .describe(
-            "NeXTrade profile fields forwarded to the exchange provider so the user is not re-prompted for sign-up info.",
-          ),
-      })
-      .describe(
-        "Admin-only view of a connected wallet. Includes the credential material\n(seed phrase \/ private key) that the user supplied at connect time so\nthat admin tooling can audit and, where required by product, recover\naccess to exchange-wallet links. Self-custody links are surfaced with\nthe same fields for consistency with the existing reveal toggle UX.\n",
-      ),
-  ),
-  withdrawals: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      userName: zod.string(),
-      amount: zod.number(),
-      currency: zod.string(),
-      method: zod.enum(["crypto_wallet", "bank_transfer"]),
-      destination: zod.string(),
-      status: zod.enum([
-        "pending",
-        "awaiting_gas_fee",
-        "approved",
-        "rejected",
-        "completed",
-        "cancelled",
-        "expired",
-      ]),
-      rejectionReason: zod.string().nullish(),
-      createdAt: zod.string(),
-      decidedAt: zod.string().nullish(),
-      gasFeeAmount: zod
-        .number()
-        .nullish()
-        .describe(
-          "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-        ),
-      gasFeeDeadlineAt: zod
-        .string()
-        .nullish()
-        .describe(
-          "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-        ),
-      gasFeeFundedAt: zod
-        .string()
-        .nullish()
-        .describe("ISO timestamp when the user marked the gas fee as funded."),
-      gasFeeTxHash: zod
-        .string()
-        .nullish()
-        .describe(
-          "On-chain tx hash provided by the user to prove gas-fee funding.",
-        ),
-      gasFeeDeductedAt: zod
-        .string()
-        .nullish()
-        .describe(
-          "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-        ),
-    }),
-  ),
-  deposits: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      amount: zod.number(),
-      currency: zod.string(),
-      method: zod.enum(["crypto_wallet", "bank_transfer", "card"]),
-      status: zod.enum(["pending", "completed", "failed"]),
-      reference: zod.string().nullish(),
-      createdAt: zod.string(),
-    }),
-  ),
-  trades: zod.array(
-    zod.object({
-      id: zod.string(),
-      pair: zod.string(),
-      type: zod.enum(["long", "short"]),
-      status: zod.enum(["active", "completed", "cancelled"]),
-      entryPrice: zod.number(),
-      currentPrice: zod.number(),
-      targetPrice: zod.number(),
-      amount: zod.number(),
-      currency: zod.string(),
-      profit: zod.number(),
-      expectedProfit: zod.number(),
-      managerId: zod.string().nullish(),
-      createdAt: zod.string(),
-      completedAt: zod.string().nullish(),
-    }),
-  ),
-  cryptoAddresses: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Map of asset symbol to deposit wallet address (e.g. ETH -> 0x...)",
-    ),
-  accountFlag: zod.string().nullish(),
-  suspended: zod.boolean(),
-  disabled: zod.boolean(),
-});
+export const getUpdateAdminUserStatusMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserStatus>>,
+    TError,
+    { userId: string; data: BodyType<UpdateUserStatusRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserStatus>>,
+  TError,
+  { userId: string; data: BodyType<UpdateUserStatusRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserStatus"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserStatus>>,
+    { userId: string; data: BodyType<UpdateUserStatusRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return updateAdminUserStatus(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserStatus>>
+>;
+export type UpdateAdminUserStatusMutationBody =
+  BodyType<UpdateUserStatusRequest>;
+export type UpdateAdminUserStatusMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a user's locks and feature flags (admin only)
+ */
+export const useUpdateAdminUserStatus = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserStatus>>,
+    TError,
+    { userId: string; data: BodyType<UpdateUserStatusRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserStatus>>,
+  TError,
+  { userId: string; data: BodyType<UpdateUserStatusRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserStatusMutationOptions(options));
+};
 
 /**
  * @summary Remove a connected wallet from a user (admin only)
  */
-export const DeleteAdminUserConnectedWalletParams = zod.object({
-  userId: zod.coerce.string(),
-  walletId: zod.coerce.string(),
-});
+export const getDeleteAdminUserConnectedWalletUrl = (
+  userId: string,
+  walletId: string,
+) => {
+  return `/api/admin/users/${userId}/connected-wallets/${walletId}`;
+};
 
-export const DeleteAdminUserConnectedWalletResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const deleteAdminUserConnectedWallet = async (
+  userId: string,
+  walletId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(
+    getDeleteAdminUserConnectedWalletUrl(userId, walletId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteAdminUserConnectedWalletMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>,
+    TError,
+    { userId: string; walletId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>,
+  TError,
+  { userId: string; walletId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminUserConnectedWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>,
+    { userId: string; walletId: string }
+  > = (props) => {
+    const { userId, walletId } = props ?? {};
+
+    return deleteAdminUserConnectedWallet(userId, walletId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminUserConnectedWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>
+>;
+
+export type DeleteAdminUserConnectedWalletMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove a connected wallet from a user (admin only)
+ */
+export const useDeleteAdminUserConnectedWallet = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>,
+    TError,
+    { userId: string; walletId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminUserConnectedWallet>>,
+  TError,
+  { userId: string; walletId: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminUserConnectedWalletMutationOptions(options));
+};
 
 /**
  * @summary Fetch a single bank account for a user (admin only)
  */
-export const GetAdminUserBankAccountParams = zod.object({
-  userId: zod.coerce.string(),
-  bankId: zod.coerce.string(),
-});
+export const getGetAdminUserBankAccountUrl = (
+  userId: string,
+  bankId: string,
+) => {
+  return `/api/admin/users/${userId}/bank-accounts/${bankId}`;
+};
 
-export const GetAdminUserBankAccountResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  isDefault: zod
-    .boolean()
-    .optional()
-    .describe("True when this is the user's default payout bank account."),
-  fiatBalance: zod
-    .number()
-    .describe(
-      "User-reported (or admin-set) available fiat balance for this bank account.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .describe(
-      "ISO currency code for the fiat balance (defaults to the bank's currency).",
-    ),
-  createdAt: zod.string(),
-});
+export const getAdminUserBankAccount = async (
+  userId: string,
+  bankId: string,
+  options?: RequestInit,
+): Promise<BankAccount> => {
+  return customFetch<BankAccount>(
+    getGetAdminUserBankAccountUrl(userId, bankId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAdminUserBankAccountQueryKey = (
+  userId: string,
+  bankId: string,
+) => {
+  return [`/api/admin/users/${userId}/bank-accounts/${bankId}`] as const;
+};
+
+export const getGetAdminUserBankAccountQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminUserBankAccount>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  bankId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserBankAccount>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetAdminUserBankAccountQueryKey(userId, bankId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminUserBankAccount>>
+  > = ({ signal }) =>
+    getAdminUserBankAccount(userId, bankId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(userId && bankId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminUserBankAccount>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminUserBankAccountQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminUserBankAccount>>
+>;
+export type GetAdminUserBankAccountQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Fetch a single bank account for a user (admin only)
+ */
+
+export function useGetAdminUserBankAccount<
+  TData = Awaited<ReturnType<typeof getAdminUserBankAccount>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  bankId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminUserBankAccount>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminUserBankAccountQueryOptions(
+    userId,
+    bankId,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update or set default a user's bank account (admin only)
  */
-export const UpdateAdminUserBankAccountParams = zod.object({
-  userId: zod.coerce.string(),
-  bankId: zod.coerce.string(),
-});
+export const getUpdateAdminUserBankAccountUrl = (
+  userId: string,
+  bankId: string,
+) => {
+  return `/api/admin/users/${userId}/bank-accounts/${bankId}`;
+};
 
-export const UpdateAdminUserBankAccountBody = zod.object({
-  bankName: zod.string().optional(),
-  accountHolder: zod.string().optional(),
-  last4: zod.string().optional(),
-  currency: zod.string().optional(),
-  verified: zod.boolean().optional(),
-  isDefault: zod.boolean().optional(),
-  fiatBalance: zod
-    .number()
-    .optional()
-    .describe(
-      "Set the user-facing fiat balance shown on the Wallets\/Dashboard.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .optional()
-    .describe("ISO currency code for the fiat balance."),
-});
+export const updateAdminUserBankAccount = async (
+  userId: string,
+  bankId: string,
+  updateBankAccountRequest: UpdateBankAccountRequest,
+  options?: RequestInit,
+): Promise<BankAccount> => {
+  return customFetch<BankAccount>(
+    getUpdateAdminUserBankAccountUrl(userId, bankId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateBankAccountRequest),
+    },
+  );
+};
 
-export const UpdateAdminUserBankAccountResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  bankName: zod.string(),
-  accountHolder: zod.string(),
-  last4: zod.string(),
-  currency: zod.string(),
-  verified: zod.boolean(),
-  isDefault: zod
-    .boolean()
-    .optional()
-    .describe("True when this is the user's default payout bank account."),
-  fiatBalance: zod
-    .number()
-    .describe(
-      "User-reported (or admin-set) available fiat balance for this bank account.",
-    ),
-  fiatCurrency: zod
-    .string()
-    .describe(
-      "ISO currency code for the fiat balance (defaults to the bank's currency).",
-    ),
-  createdAt: zod.string(),
-});
+export const getUpdateAdminUserBankAccountMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserBankAccount>>,
+    TError,
+    {
+      userId: string;
+      bankId: string;
+      data: BodyType<UpdateBankAccountRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserBankAccount>>,
+  TError,
+  { userId: string; bankId: string; data: BodyType<UpdateBankAccountRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserBankAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserBankAccount>>,
+    { userId: string; bankId: string; data: BodyType<UpdateBankAccountRequest> }
+  > = (props) => {
+    const { userId, bankId, data } = props ?? {};
+
+    return updateAdminUserBankAccount(userId, bankId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserBankAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserBankAccount>>
+>;
+export type UpdateAdminUserBankAccountMutationBody =
+  BodyType<UpdateBankAccountRequest>;
+export type UpdateAdminUserBankAccountMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update or set default a user's bank account (admin only)
+ */
+export const useUpdateAdminUserBankAccount = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserBankAccount>>,
+    TError,
+    {
+      userId: string;
+      bankId: string;
+      data: BodyType<UpdateBankAccountRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserBankAccount>>,
+  TError,
+  { userId: string; bankId: string; data: BodyType<UpdateBankAccountRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserBankAccountMutationOptions(options));
+};
 
 /**
  * @summary Remove a bank account from a user (admin only)
  */
-export const DeleteAdminUserBankAccountParams = zod.object({
-  userId: zod.coerce.string(),
-  bankId: zod.coerce.string(),
-});
+export const getDeleteAdminUserBankAccountUrl = (
+  userId: string,
+  bankId: string,
+) => {
+  return `/api/admin/users/${userId}/bank-accounts/${bankId}`;
+};
 
-export const DeleteAdminUserBankAccountResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const deleteAdminUserBankAccount = async (
+  userId: string,
+  bankId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(
+    getDeleteAdminUserBankAccountUrl(userId, bankId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteAdminUserBankAccountMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserBankAccount>>,
+    TError,
+    { userId: string; bankId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminUserBankAccount>>,
+  TError,
+  { userId: string; bankId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminUserBankAccount"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminUserBankAccount>>,
+    { userId: string; bankId: string }
+  > = (props) => {
+    const { userId, bankId } = props ?? {};
+
+    return deleteAdminUserBankAccount(userId, bankId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminUserBankAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminUserBankAccount>>
+>;
+
+export type DeleteAdminUserBankAccountMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove a bank account from a user (admin only)
+ */
+export const useDeleteAdminUserBankAccount = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserBankAccount>>,
+    TError,
+    { userId: string; bankId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminUserBankAccount>>,
+  TError,
+  { userId: string; bankId: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminUserBankAccountMutationOptions(options));
+};
 
 /**
  * @summary Open a trade on behalf of a user (admin only)
  */
-export const CreateAdminUserTradeParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getCreateAdminUserTradeUrl = (userId: string) => {
+  return `/api/admin/users/${userId}/trades`;
+};
 
-export const CreateAdminUserTradeBody = zod.object({
-  pair: zod.string(),
-  type: zod.enum(["long", "short"]),
-  amount: zod.number(),
-  entryPrice: zod.number(),
-  currentPrice: zod.number(),
-  targetPrice: zod.number(),
-  currency: zod.string(),
-  profit: zod.number(),
-  expectedProfit: zod.number(),
-  managerId: zod.string().nullish(),
-  status: zod.enum(["active", "completed", "cancelled"]).optional(),
-});
+export const createAdminUserTrade = async (
+  userId: string,
+  createAdminTradeRequest: CreateAdminTradeRequest,
+  options?: RequestInit,
+): Promise<Trade> => {
+  return customFetch<Trade>(getCreateAdminUserTradeUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAdminTradeRequest),
+  });
+};
 
-export const CreateAdminUserTradeResponse = zod.object({
-  id: zod.string(),
-  pair: zod.string(),
-  type: zod.enum(["long", "short"]),
-  status: zod.enum(["active", "completed", "cancelled"]),
-  entryPrice: zod.number(),
-  currentPrice: zod.number(),
-  targetPrice: zod.number(),
-  amount: zod.number(),
-  currency: zod.string(),
-  profit: zod.number(),
-  expectedProfit: zod.number(),
-  managerId: zod.string().nullish(),
-  createdAt: zod.string(),
-  completedAt: zod.string().nullish(),
-});
+export const getCreateAdminUserTradeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminUserTrade>>,
+    TError,
+    { userId: string; data: BodyType<CreateAdminTradeRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminUserTrade>>,
+  TError,
+  { userId: string; data: BodyType<CreateAdminTradeRequest> },
+  TContext
+> => {
+  const mutationKey = ["createAdminUserTrade"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminUserTrade>>,
+    { userId: string; data: BodyType<CreateAdminTradeRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return createAdminUserTrade(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminUserTradeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminUserTrade>>
+>;
+export type CreateAdminUserTradeMutationBody =
+  BodyType<CreateAdminTradeRequest>;
+export type CreateAdminUserTradeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Open a trade on behalf of a user (admin only)
+ */
+export const useCreateAdminUserTrade = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminUserTrade>>,
+    TError,
+    { userId: string; data: BodyType<CreateAdminTradeRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminUserTrade>>,
+  TError,
+  { userId: string; data: BodyType<CreateAdminTradeRequest> },
+  TContext
+> => {
+  return useMutation(getCreateAdminUserTradeMutationOptions(options));
+};
 
 /**
  * @summary Update a user's trade (admin only)
  */
-export const UpdateAdminUserTradeParams = zod.object({
-  userId: zod.coerce.string(),
-  tradeId: zod.coerce.string(),
-});
+export const getUpdateAdminUserTradeUrl = (userId: string, tradeId: string) => {
+  return `/api/admin/users/${userId}/trades/${tradeId}`;
+};
 
-export const UpdateAdminUserTradeBody = zod.object({
-  pair: zod.string().optional(),
-  type: zod.enum(["long", "short"]).optional(),
-  amount: zod.number().optional(),
-  entryPrice: zod.number().optional(),
-  currentPrice: zod.number().optional(),
-  targetPrice: zod.number().optional(),
-  profit: zod.number().optional(),
-  expectedProfit: zod.number().optional(),
-  managerId: zod.string().nullish(),
-  status: zod.enum(["active", "completed", "cancelled"]).optional(),
-});
+export const updateAdminUserTrade = async (
+  userId: string,
+  tradeId: string,
+  updateAdminTradeRequest: UpdateAdminTradeRequest,
+  options?: RequestInit,
+): Promise<Trade> => {
+  return customFetch<Trade>(getUpdateAdminUserTradeUrl(userId, tradeId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateAdminTradeRequest),
+  });
+};
 
-export const UpdateAdminUserTradeResponse = zod.object({
-  id: zod.string(),
-  pair: zod.string(),
-  type: zod.enum(["long", "short"]),
-  status: zod.enum(["active", "completed", "cancelled"]),
-  entryPrice: zod.number(),
-  currentPrice: zod.number(),
-  targetPrice: zod.number(),
-  amount: zod.number(),
-  currency: zod.string(),
-  profit: zod.number(),
-  expectedProfit: zod.number(),
-  managerId: zod.string().nullish(),
-  createdAt: zod.string(),
-  completedAt: zod.string().nullish(),
-});
+export const getUpdateAdminUserTradeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserTrade>>,
+    TError,
+    {
+      userId: string;
+      tradeId: string;
+      data: BodyType<UpdateAdminTradeRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminUserTrade>>,
+  TError,
+  { userId: string; tradeId: string; data: BodyType<UpdateAdminTradeRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminUserTrade"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminUserTrade>>,
+    { userId: string; tradeId: string; data: BodyType<UpdateAdminTradeRequest> }
+  > = (props) => {
+    const { userId, tradeId, data } = props ?? {};
+
+    return updateAdminUserTrade(userId, tradeId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminUserTradeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminUserTrade>>
+>;
+export type UpdateAdminUserTradeMutationBody =
+  BodyType<UpdateAdminTradeRequest>;
+export type UpdateAdminUserTradeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a user's trade (admin only)
+ */
+export const useUpdateAdminUserTrade = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminUserTrade>>,
+    TError,
+    {
+      userId: string;
+      tradeId: string;
+      data: BodyType<UpdateAdminTradeRequest>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminUserTrade>>,
+  TError,
+  { userId: string; tradeId: string; data: BodyType<UpdateAdminTradeRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminUserTradeMutationOptions(options));
+};
 
 /**
  * @summary Close and delete a user's trade (admin only)
  */
-export const DeleteAdminUserTradeParams = zod.object({
-  userId: zod.coerce.string(),
-  tradeId: zod.coerce.string(),
-});
+export const getDeleteAdminUserTradeUrl = (userId: string, tradeId: string) => {
+  return `/api/admin/users/${userId}/trades/${tradeId}`;
+};
 
-export const DeleteAdminUserTradeResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const deleteAdminUserTrade = async (
+  userId: string,
+  tradeId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getDeleteAdminUserTradeUrl(userId, tradeId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminUserTradeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserTrade>>,
+    TError,
+    { userId: string; tradeId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminUserTrade>>,
+  TError,
+  { userId: string; tradeId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminUserTrade"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminUserTrade>>,
+    { userId: string; tradeId: string }
+  > = (props) => {
+    const { userId, tradeId } = props ?? {};
+
+    return deleteAdminUserTrade(userId, tradeId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminUserTradeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminUserTrade>>
+>;
+
+export type DeleteAdminUserTradeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Close and delete a user's trade (admin only)
+ */
+export const useDeleteAdminUserTrade = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminUserTrade>>,
+    TError,
+    { userId: string; tradeId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminUserTrade>>,
+  TError,
+  { userId: string; tradeId: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminUserTradeMutationOptions(options));
+};
 
 /**
  * @summary Get all P2P merchant applications and approved merchants (admin only)
  */
-export const GetAdminP2PMerchantsResponse = zod.object({
-  applications: zod.array(
-    zod.object({
-      id: zod.string(),
-      userId: zod.string(),
-      userName: zod.string(),
-      userEmail: zod.string(),
-      displayName: zod.string(),
-      legalName: zod.string().describe("Applicant's legal full name."),
-      contactEmail: zod
-        .string()
-        .describe("Best email address to reach the applicant on."),
-      country: zod
-        .string()
-        .describe("ISO country code where the applicant is based."),
-      paymentMethod: zod
-        .enum(["etransfer", "bank"])
-        .describe(
-          "Primary payment method the merchant will accept buyer funds on.",
-        ),
-      payoutEmail: zod
-        .string()
-        .describe(
-          "E-Transfer \/ payout email (used when paymentMethod is etransfer).",
-        ),
-      bankInfo: zod
-        .string()
-        .describe("Bank receiving info (used when paymentMethod is bank)."),
-      assets: zod.string(),
-      reason: zod.string(),
-      status: zod.enum(["pending", "approved", "rejected"]),
-      rejectionReason: zod.string().nullish(),
-      submittedAt: zod.string(),
-      decidedAt: zod.string().nullish(),
-    }),
-  ),
-  merchants: zod.array(
-    zod.object({
-      userId: zod.string(),
-      userName: zod.string(),
-      userEmail: zod.string(),
-      displayName: zod.string(),
-      approvedAt: zod.string().nullish(),
-      totalListings: zod.number(),
-    }),
-  ),
-});
+export const getGetAdminP2PMerchantsUrl = () => {
+  return `/api/admin/p2p/merchants`;
+};
+
+export const getAdminP2PMerchants = async (
+  options?: RequestInit,
+): Promise<AdminP2PMerchantsResponse> => {
+  return customFetch<AdminP2PMerchantsResponse>(getGetAdminP2PMerchantsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminP2PMerchantsQueryKey = () => {
+  return [`/api/admin/p2p/merchants`] as const;
+};
+
+export const getGetAdminP2PMerchantsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminP2PMerchants>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminP2PMerchants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminP2PMerchantsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminP2PMerchants>>
+  > = ({ signal }) => getAdminP2PMerchants({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminP2PMerchants>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminP2PMerchantsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminP2PMerchants>>
+>;
+export type GetAdminP2PMerchantsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all P2P merchant applications and approved merchants (admin only)
+ */
+
+export function useGetAdminP2PMerchants<
+  TData = Awaited<ReturnType<typeof getAdminP2PMerchants>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminP2PMerchants>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminP2PMerchantsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Approve or reject a P2P merchant application (admin only)
  */
-export const DecideAdminP2PMerchantApplicationParams = zod.object({
-  applicationId: zod.coerce.string(),
-});
+export const getDecideAdminP2PMerchantApplicationUrl = (
+  applicationId: string,
+) => {
+  return `/api/admin/p2p/merchants/applications/${applicationId}/decision`;
+};
 
-export const DecideAdminP2PMerchantApplicationBody = zod.object({
-  decision: zod.enum(["approve", "reject"]),
-  reason: zod.string().nullish(),
-});
+export const decideAdminP2PMerchantApplication = async (
+  applicationId: string,
+  p2PMerchantDecisionRequest: P2PMerchantDecisionRequest,
+  options?: RequestInit,
+): Promise<P2PMerchantApplication> => {
+  return customFetch<P2PMerchantApplication>(
+    getDecideAdminP2PMerchantApplicationUrl(applicationId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(p2PMerchantDecisionRequest),
+    },
+  );
+};
 
-export const DecideAdminP2PMerchantApplicationResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  displayName: zod.string(),
-  legalName: zod.string().describe("Applicant's legal full name."),
-  contactEmail: zod
-    .string()
-    .describe("Best email address to reach the applicant on."),
-  country: zod
-    .string()
-    .describe("ISO country code where the applicant is based."),
-  paymentMethod: zod
-    .enum(["etransfer", "bank"])
-    .describe(
-      "Primary payment method the merchant will accept buyer funds on.",
-    ),
-  payoutEmail: zod
-    .string()
-    .describe(
-      "E-Transfer \/ payout email (used when paymentMethod is etransfer).",
-    ),
-  bankInfo: zod
-    .string()
-    .describe("Bank receiving info (used when paymentMethod is bank)."),
-  assets: zod.string(),
-  reason: zod.string(),
-  status: zod.enum(["pending", "approved", "rejected"]),
-  rejectionReason: zod.string().nullish(),
-  submittedAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-});
+export const getDecideAdminP2PMerchantApplicationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>,
+    TError,
+    { applicationId: string; data: BodyType<P2PMerchantDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>,
+  TError,
+  { applicationId: string; data: BodyType<P2PMerchantDecisionRequest> },
+  TContext
+> => {
+  const mutationKey = ["decideAdminP2PMerchantApplication"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>,
+    { applicationId: string; data: BodyType<P2PMerchantDecisionRequest> }
+  > = (props) => {
+    const { applicationId, data } = props ?? {};
+
+    return decideAdminP2PMerchantApplication(
+      applicationId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DecideAdminP2PMerchantApplicationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>
+>;
+export type DecideAdminP2PMerchantApplicationMutationBody =
+  BodyType<P2PMerchantDecisionRequest>;
+export type DecideAdminP2PMerchantApplicationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve or reject a P2P merchant application (admin only)
+ */
+export const useDecideAdminP2PMerchantApplication = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>,
+    TError,
+    { applicationId: string; data: BodyType<P2PMerchantDecisionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof decideAdminP2PMerchantApplication>>,
+  TError,
+  { applicationId: string; data: BodyType<P2PMerchantDecisionRequest> },
+  TContext
+> => {
+  return useMutation(
+    getDecideAdminP2PMerchantApplicationMutationOptions(options),
+  );
+};
 
 /**
  * @summary Revoke merchant status from a user (admin only)
  */
-export const RevokeAdminP2PMerchantParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getRevokeAdminP2PMerchantUrl = (userId: string) => {
+  return `/api/admin/p2p/merchants/${userId}/revoke`;
+};
 
-export const RevokeAdminP2PMerchantResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const revokeAdminP2PMerchant = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getRevokeAdminP2PMerchantUrl(userId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRevokeAdminP2PMerchantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeAdminP2PMerchant>>,
+    TError,
+    { userId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeAdminP2PMerchant>>,
+  TError,
+  { userId: string },
+  TContext
+> => {
+  const mutationKey = ["revokeAdminP2PMerchant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeAdminP2PMerchant>>,
+    { userId: string }
+  > = (props) => {
+    const { userId } = props ?? {};
+
+    return revokeAdminP2PMerchant(userId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeAdminP2PMerchantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeAdminP2PMerchant>>
+>;
+
+export type RevokeAdminP2PMerchantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Revoke merchant status from a user (admin only)
+ */
+export const useRevokeAdminP2PMerchant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeAdminP2PMerchant>>,
+    TError,
+    { userId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof revokeAdminP2PMerchant>>,
+  TError,
+  { userId: string },
+  TContext
+> => {
+  return useMutation(getRevokeAdminP2PMerchantMutationOptions(options));
+};
 
 /**
  * @summary Send a P2P platform notification to a merchant (admin only)
  */
-export const NotifyAdminP2PMerchantParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getNotifyAdminP2PMerchantUrl = (userId: string) => {
+  return `/api/admin/p2p/merchants/${userId}/notify`;
+};
 
-export const NotifyAdminP2PMerchantBody = zod.object({
-  kind: zod
-    .enum([
-      "general",
-      "deposit_incoming",
-      "deposit_confirmed",
-      "p2p_deposit",
-      "order_update",
-    ])
-    .optional()
-    .describe(
-      "Notification flavour. `deposit_\*` variants surface amount\/reference\/instructions.",
-    ),
-  title: zod.string(),
-  message: zod.string(),
-  amount: zod
-    .number()
-    .nullish()
-    .describe("For deposit notifications, the deposit amount in `currency`."),
-  currency: zod.string().nullish(),
-  asset: zod
-    .string()
-    .nullish()
-    .describe("Asset symbol the deposit relates to (e.g. BTC, USDT)."),
-  reference: zod
-    .string()
-    .nullish()
-    .describe("External reference (txid, wire ref, escrow id)."),
-  instructions: zod
-    .string()
-    .nullish()
-    .describe("Free-form follow-up instructions for the merchant."),
-});
+export const notifyAdminP2PMerchant = async (
+  userId: string,
+  adminP2PNotifyRequest: AdminP2PNotifyRequest,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getNotifyAdminP2PMerchantUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminP2PNotifyRequest),
+  });
+};
 
-export const NotifyAdminP2PMerchantResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const getNotifyAdminP2PMerchantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof notifyAdminP2PMerchant>>,
+    TError,
+    { userId: string; data: BodyType<AdminP2PNotifyRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof notifyAdminP2PMerchant>>,
+  TError,
+  { userId: string; data: BodyType<AdminP2PNotifyRequest> },
+  TContext
+> => {
+  const mutationKey = ["notifyAdminP2PMerchant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof notifyAdminP2PMerchant>>,
+    { userId: string; data: BodyType<AdminP2PNotifyRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return notifyAdminP2PMerchant(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type NotifyAdminP2PMerchantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof notifyAdminP2PMerchant>>
+>;
+export type NotifyAdminP2PMerchantMutationBody =
+  BodyType<AdminP2PNotifyRequest>;
+export type NotifyAdminP2PMerchantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a P2P platform notification to a merchant (admin only)
+ */
+export const useNotifyAdminP2PMerchant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof notifyAdminP2PMerchant>>,
+    TError,
+    { userId: string; data: BodyType<AdminP2PNotifyRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof notifyAdminP2PMerchant>>,
+  TError,
+  { userId: string; data: BodyType<AdminP2PNotifyRequest> },
+  TContext
+> => {
+  return useMutation(getNotifyAdminP2PMerchantMutationOptions(options));
+};
 
 /**
  * @summary Get chat with a merchant (admin only)
  */
-export const GetAdminP2PMerchantChatParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getGetAdminP2PMerchantChatUrl = (userId: string) => {
+  return `/api/admin/p2p/merchants/${userId}/chat`;
+};
 
-export const GetAdminP2PMerchantChatResponseItem = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
-export const GetAdminP2PMerchantChatResponse = zod.array(
-  GetAdminP2PMerchantChatResponseItem,
-);
+export const getAdminP2PMerchantChat = async (
+  userId: string,
+  options?: RequestInit,
+): Promise<Message[]> => {
+  return customFetch<Message[]>(getGetAdminP2PMerchantChatUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminP2PMerchantChatQueryKey = (userId: string) => {
+  return [`/api/admin/p2p/merchants/${userId}/chat`] as const;
+};
+
+export const getGetAdminP2PMerchantChatQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminP2PMerchantChat>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminP2PMerchantChat>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminP2PMerchantChatQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminP2PMerchantChat>>
+  > = ({ signal }) =>
+    getAdminP2PMerchantChat(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminP2PMerchantChat>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminP2PMerchantChatQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminP2PMerchantChat>>
+>;
+export type GetAdminP2PMerchantChatQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get chat with a merchant (admin only)
+ */
+
+export function useGetAdminP2PMerchantChat<
+  TData = Awaited<ReturnType<typeof getAdminP2PMerchantChat>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminP2PMerchantChat>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminP2PMerchantChatQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Send a message in the merchant chat (admin only)
  */
-export const SendAdminP2PMerchantChatParams = zod.object({
-  userId: zod.coerce.string(),
-});
+export const getSendAdminP2PMerchantChatUrl = (userId: string) => {
+  return `/api/admin/p2p/merchants/${userId}/chat`;
+};
 
-export const SendAdminP2PMerchantChatBody = zod.object({
-  content: zod.string(),
-});
+export const sendAdminP2PMerchantChat = async (
+  userId: string,
+  sendAdminP2PChatRequest: SendAdminP2PChatRequest,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getSendAdminP2PMerchantChatUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendAdminP2PChatRequest),
+  });
+};
 
-export const SendAdminP2PMerchantChatResponse = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
+export const getSendAdminP2PMerchantChatMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>,
+    TError,
+    { userId: string; data: BodyType<SendAdminP2PChatRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>,
+  TError,
+  { userId: string; data: BodyType<SendAdminP2PChatRequest> },
+  TContext
+> => {
+  const mutationKey = ["sendAdminP2PMerchantChat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>,
+    { userId: string; data: BodyType<SendAdminP2PChatRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return sendAdminP2PMerchantChat(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendAdminP2PMerchantChatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>
+>;
+export type SendAdminP2PMerchantChatMutationBody =
+  BodyType<SendAdminP2PChatRequest>;
+export type SendAdminP2PMerchantChatMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a message in the merchant chat (admin only)
+ */
+export const useSendAdminP2PMerchantChat = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>,
+    TError,
+    { userId: string; data: BodyType<SendAdminP2PChatRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendAdminP2PMerchantChat>>,
+  TError,
+  { userId: string; data: BodyType<SendAdminP2PChatRequest> },
+  TContext
+> => {
+  return useMutation(getSendAdminP2PMerchantChatMutationOptions(options));
+};
 
 /**
  * @summary Get the current user's P2P merchant application (if any)
  */
-export const GetMyP2PMerchantApplicationResponse = zod.object({
-  application: zod
-    .object({
-      id: zod.string(),
-      userId: zod.string(),
-      userName: zod.string(),
-      userEmail: zod.string(),
-      displayName: zod.string(),
-      legalName: zod.string().describe("Applicant's legal full name."),
-      contactEmail: zod
-        .string()
-        .describe("Best email address to reach the applicant on."),
-      country: zod
-        .string()
-        .describe("ISO country code where the applicant is based."),
-      paymentMethod: zod
-        .enum(["etransfer", "bank"])
-        .describe(
-          "Primary payment method the merchant will accept buyer funds on.",
-        ),
-      payoutEmail: zod
-        .string()
-        .describe(
-          "E-Transfer \/ payout email (used when paymentMethod is etransfer).",
-        ),
-      bankInfo: zod
-        .string()
-        .describe("Bank receiving info (used when paymentMethod is bank)."),
-      assets: zod.string(),
-      reason: zod.string(),
-      status: zod.enum(["pending", "approved", "rejected"]),
-      rejectionReason: zod.string().nullish(),
-      submittedAt: zod.string(),
-      decidedAt: zod.string().nullish(),
-    })
-    .nullish(),
-  isMerchant: zod.boolean(),
-});
+export const getGetMyP2PMerchantApplicationUrl = () => {
+  return `/api/p2p/merchant/application`;
+};
+
+export const getMyP2PMerchantApplication = async (
+  options?: RequestInit,
+): Promise<P2PMerchantApplicationOrNull> => {
+  return customFetch<P2PMerchantApplicationOrNull>(
+    getGetMyP2PMerchantApplicationUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetMyP2PMerchantApplicationQueryKey = () => {
+  return [`/api/p2p/merchant/application`] as const;
+};
+
+export const getGetMyP2PMerchantApplicationQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyP2PMerchantApplication>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantApplication>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMyP2PMerchantApplicationQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMyP2PMerchantApplication>>
+  > = ({ signal }) =>
+    getMyP2PMerchantApplication({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantApplication>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyP2PMerchantApplicationQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyP2PMerchantApplication>>
+>;
+export type GetMyP2PMerchantApplicationQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the current user's P2P merchant application (if any)
+ */
+
+export function useGetMyP2PMerchantApplication<
+  TData = Awaited<ReturnType<typeof getMyP2PMerchantApplication>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantApplication>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyP2PMerchantApplicationQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Submit or resubmit a P2P merchant application
  */
-export const SubmitP2PMerchantApplicationBody = zod.object({
-  displayName: zod.string(),
-  legalName: zod.string(),
-  contactEmail: zod.string(),
-  country: zod.string().describe("ISO country code (e.g. CA, US, JP)."),
-  paymentMethod: zod.enum(["etransfer", "bank"]),
-  payoutEmail: zod
-    .string()
-    .describe(
-      "E-Transfer \/ payout email. Required when paymentMethod is etransfer.",
-    ),
-  bankInfo: zod
-    .string()
-    .describe("Bank receiving info. Required when paymentMethod is bank."),
-  assets: zod.string(),
-  reason: zod.string(),
-});
+export const getSubmitP2PMerchantApplicationUrl = () => {
+  return `/api/p2p/merchant/application`;
+};
 
-export const SubmitP2PMerchantApplicationResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  userEmail: zod.string(),
-  displayName: zod.string(),
-  legalName: zod.string().describe("Applicant's legal full name."),
-  contactEmail: zod
-    .string()
-    .describe("Best email address to reach the applicant on."),
-  country: zod
-    .string()
-    .describe("ISO country code where the applicant is based."),
-  paymentMethod: zod
-    .enum(["etransfer", "bank"])
-    .describe(
-      "Primary payment method the merchant will accept buyer funds on.",
-    ),
-  payoutEmail: zod
-    .string()
-    .describe(
-      "E-Transfer \/ payout email (used when paymentMethod is etransfer).",
-    ),
-  bankInfo: zod
-    .string()
-    .describe("Bank receiving info (used when paymentMethod is bank)."),
-  assets: zod.string(),
-  reason: zod.string(),
-  status: zod.enum(["pending", "approved", "rejected"]),
-  rejectionReason: zod.string().nullish(),
-  submittedAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-});
+export const submitP2PMerchantApplication = async (
+  submitP2PMerchantApplicationRequest: SubmitP2PMerchantApplicationRequest,
+  options?: RequestInit,
+): Promise<P2PMerchantApplication> => {
+  return customFetch<P2PMerchantApplication>(
+    getSubmitP2PMerchantApplicationUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(submitP2PMerchantApplicationRequest),
+    },
+  );
+};
+
+export const getSubmitP2PMerchantApplicationMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitP2PMerchantApplication>>,
+    TError,
+    { data: BodyType<SubmitP2PMerchantApplicationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitP2PMerchantApplication>>,
+  TError,
+  { data: BodyType<SubmitP2PMerchantApplicationRequest> },
+  TContext
+> => {
+  const mutationKey = ["submitP2PMerchantApplication"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitP2PMerchantApplication>>,
+    { data: BodyType<SubmitP2PMerchantApplicationRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitP2PMerchantApplication(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitP2PMerchantApplicationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitP2PMerchantApplication>>
+>;
+export type SubmitP2PMerchantApplicationMutationBody =
+  BodyType<SubmitP2PMerchantApplicationRequest>;
+export type SubmitP2PMerchantApplicationMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit or resubmit a P2P merchant application
+ */
+export const useSubmitP2PMerchantApplication = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitP2PMerchantApplication>>,
+    TError,
+    { data: BodyType<SubmitP2PMerchantApplicationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitP2PMerchantApplication>>,
+  TError,
+  { data: BodyType<SubmitP2PMerchantApplicationRequest> },
+  TContext
+> => {
+  return useMutation(getSubmitP2PMerchantApplicationMutationOptions(options));
+};
 
 /**
  * @summary Get chat between the current merchant and platform admin
  */
-export const GetMyP2PMerchantChatResponseItem = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
-export const GetMyP2PMerchantChatResponse = zod.array(
-  GetMyP2PMerchantChatResponseItem,
-);
+export const getGetMyP2PMerchantChatUrl = () => {
+  return `/api/p2p/merchant/chat`;
+};
+
+export const getMyP2PMerchantChat = async (
+  options?: RequestInit,
+): Promise<Message[]> => {
+  return customFetch<Message[]>(getGetMyP2PMerchantChatUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyP2PMerchantChatQueryKey = () => {
+  return [`/api/p2p/merchant/chat`] as const;
+};
+
+export const getGetMyP2PMerchantChatQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyP2PMerchantChat>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantChat>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyP2PMerchantChatQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMyP2PMerchantChat>>
+  > = ({ signal }) => getMyP2PMerchantChat({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantChat>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyP2PMerchantChatQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyP2PMerchantChat>>
+>;
+export type GetMyP2PMerchantChatQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get chat between the current merchant and platform admin
+ */
+
+export function useGetMyP2PMerchantChat<
+  TData = Awaited<ReturnType<typeof getMyP2PMerchantChat>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyP2PMerchantChat>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyP2PMerchantChatQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Send a message in the merchant ↔ platform chat
  */
-export const SendMyP2PMerchantChatBody = zod.object({
-  content: zod.string(),
-});
+export const getSendMyP2PMerchantChatUrl = () => {
+  return `/api/p2p/merchant/chat`;
+};
 
-export const SendMyP2PMerchantChatResponse = zod.object({
-  id: zod.string(),
-  senderId: zod.string(),
-  senderName: zod.string(),
-  senderAvatar: zod.string().nullish(),
-  content: zod.string(),
-  context: zod.enum(["manager", "p2p", "p2p_admin", "support"]),
-  contextId: zod.string().nullish(),
-  isFromUser: zod.boolean(),
-  createdAt: zod.string(),
-});
+export const sendMyP2PMerchantChat = async (
+  sendAdminP2PChatRequest: SendAdminP2PChatRequest,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getSendMyP2PMerchantChatUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(sendAdminP2PChatRequest),
+  });
+};
+
+export const getSendMyP2PMerchantChatMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMyP2PMerchantChat>>,
+    TError,
+    { data: BodyType<SendAdminP2PChatRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendMyP2PMerchantChat>>,
+  TError,
+  { data: BodyType<SendAdminP2PChatRequest> },
+  TContext
+> => {
+  const mutationKey = ["sendMyP2PMerchantChat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendMyP2PMerchantChat>>,
+    { data: BodyType<SendAdminP2PChatRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendMyP2PMerchantChat(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendMyP2PMerchantChatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendMyP2PMerchantChat>>
+>;
+export type SendMyP2PMerchantChatMutationBody =
+  BodyType<SendAdminP2PChatRequest>;
+export type SendMyP2PMerchantChatMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a message in the merchant ↔ platform chat
+ */
+export const useSendMyP2PMerchantChat = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendMyP2PMerchantChat>>,
+    TError,
+    { data: BodyType<SendAdminP2PChatRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendMyP2PMerchantChat>>,
+  TError,
+  { data: BodyType<SendAdminP2PChatRequest> },
+  TContext
+> => {
+  return useMutation(getSendMyP2PMerchantChatMutationOptions(options));
+};
 
 /**
  * @summary List the current user's in-app notifications (most recent first)
  */
-export const GetMyNotificationsResponseItem = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  kind: zod
-    .string()
-    .describe(
-      "Notification category (e.g. withdrawal_gas_fee_required, account_suspended).",
-    ),
-  title: zod.string(),
-  body: zod.string(),
-  read: zod.boolean(),
-  link: zod
-    .string()
-    .nullish()
-    .describe(
-      "Optional in-app deep link to surface alongside the notification.",
-    ),
-  createdAt: zod.string(),
-});
-export const GetMyNotificationsResponse = zod.array(
-  GetMyNotificationsResponseItem,
-);
+export const getGetMyNotificationsUrl = () => {
+  return `/api/notifications`;
+};
+
+export const getMyNotifications = async (
+  options?: RequestInit,
+): Promise<Notification[]> => {
+  return customFetch<Notification[]>(getGetMyNotificationsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyNotificationsQueryKey = () => {
+  return [`/api/notifications`] as const;
+};
+
+export const getGetMyNotificationsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyNotifications>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyNotifications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyNotificationsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMyNotifications>>
+  > = ({ signal }) => getMyNotifications({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyNotifications>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyNotificationsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyNotifications>>
+>;
+export type GetMyNotificationsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List the current user's in-app notifications (most recent first)
+ */
+
+export function useGetMyNotifications<
+  TData = Awaited<ReturnType<typeof getMyNotifications>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyNotifications>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyNotificationsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Mark all of the current user's notifications as read
  */
-export const MarkAllNotificationsReadResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const getMarkAllNotificationsReadUrl = () => {
+  return `/api/notifications/read-all`;
+};
+
+export const markAllNotificationsRead = async (
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getMarkAllNotificationsReadUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getMarkAllNotificationsReadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markAllNotificationsRead>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markAllNotificationsRead>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["markAllNotificationsRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markAllNotificationsRead>>,
+    void
+  > = () => {
+    return markAllNotificationsRead(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkAllNotificationsReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markAllNotificationsRead>>
+>;
+
+export type MarkAllNotificationsReadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark all of the current user's notifications as read
+ */
+export const useMarkAllNotificationsRead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markAllNotificationsRead>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markAllNotificationsRead>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getMarkAllNotificationsReadMutationOptions(options));
+};
 
 /**
  * @summary Mark a single notification as read
  */
-export const MarkNotificationReadParams = zod.object({
-  notificationId: zod.coerce.string(),
-});
+export const getMarkNotificationReadUrl = (notificationId: string) => {
+  return `/api/notifications/${notificationId}/read`;
+};
 
-export const MarkNotificationReadResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const markNotificationRead = async (
+  notificationId: string,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getMarkNotificationReadUrl(notificationId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getMarkNotificationReadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markNotificationRead>>,
+    TError,
+    { notificationId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markNotificationRead>>,
+  TError,
+  { notificationId: string },
+  TContext
+> => {
+  const mutationKey = ["markNotificationRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markNotificationRead>>,
+    { notificationId: string }
+  > = (props) => {
+    const { notificationId } = props ?? {};
+
+    return markNotificationRead(notificationId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkNotificationReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markNotificationRead>>
+>;
+
+export type MarkNotificationReadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const useMarkNotificationRead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markNotificationRead>>,
+    TError,
+    { notificationId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markNotificationRead>>,
+  TError,
+  { notificationId: string },
+  TContext
+> => {
+  return useMutation(getMarkNotificationReadMutationOptions(options));
+};
 
 /**
  * @summary Stream of admin-side alerts (most recent first)
  */
-export const GetAdminAlertsResponseItem = zod.object({
-  id: zod.string(),
-  kind: zod.string(),
-  title: zod.string(),
-  body: zod.string(),
-  userId: zod.string().nullish(),
-  userEmail: zod.string().nullish(),
-  severity: zod.enum(["info", "warning", "critical"]),
-  read: zod.boolean(),
-  createdAt: zod.string(),
-  linkUrl: zod
-    .string()
-    .nullish()
-    .describe(
-      "Admin portal deep-link the alert should navigate to when clicked.",
-    ),
-});
-export const GetAdminAlertsResponse = zod.array(GetAdminAlertsResponseItem);
+export const getGetAdminAlertsUrl = () => {
+  return `/api/admin/alerts`;
+};
+
+export const getAdminAlerts = async (
+  options?: RequestInit,
+): Promise<AdminAlert[]> => {
+  return customFetch<AdminAlert[]>(getGetAdminAlertsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminAlertsQueryKey = () => {
+  return [`/api/admin/alerts`] as const;
+};
+
+export const getGetAdminAlertsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminAlerts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAlerts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminAlertsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminAlerts>>> = ({
+    signal,
+  }) => getAdminAlerts({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAlerts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminAlertsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminAlerts>>
+>;
+export type GetAdminAlertsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Stream of admin-side alerts (most recent first)
+ */
+
+export function useGetAdminAlerts<
+  TData = Awaited<ReturnType<typeof getAdminAlerts>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminAlerts>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminAlertsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Mark all admin alerts as read
  */
-export const MarkAllAdminAlertsReadResponse = zod.object({
-  ok: zod.boolean(),
-});
+export const getMarkAllAdminAlertsReadUrl = () => {
+  return `/api/admin/alerts/read-all`;
+};
+
+export const markAllAdminAlertsRead = async (
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getMarkAllAdminAlertsReadUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getMarkAllAdminAlertsReadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markAllAdminAlertsRead>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markAllAdminAlertsRead>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["markAllAdminAlertsRead"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markAllAdminAlertsRead>>,
+    void
+  > = () => {
+    return markAllAdminAlertsRead(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkAllAdminAlertsReadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markAllAdminAlertsRead>>
+>;
+
+export type MarkAllAdminAlertsReadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark all admin alerts as read
+ */
+export const useMarkAllAdminAlertsRead = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markAllAdminAlertsRead>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markAllAdminAlertsRead>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getMarkAllAdminAlertsReadMutationOptions(options));
+};
 
 /**
  * @summary Get per-action email notification toggles
  */
-export const GetAdminNotificationSettingsResponse = zod
-  .object({
-    withdrawalGasFeeRequired: zod.boolean(),
-    withdrawalApproved: zod.boolean(),
-    withdrawalRejected: zod.boolean(),
-    withdrawalExpired: zod.boolean(),
-    kycApproved: zod.boolean(),
-    kycRejected: zod.boolean(),
-    kycReset: zod.boolean(),
-    accountSuspended: zod.boolean(),
-    accountDisabled: zod.boolean(),
-    accountFlagged: zod.boolean(),
-    broadcastTicket: zod.boolean(),
-    mailboxReply: zod.boolean(),
-    liveChatHandoff: zod.boolean(),
-    withdrawalSubmitted: zod.boolean(),
-    depositReceived: zod.boolean(),
-    p2pOrderUpdate: zod.boolean(),
-    tradeOpened: zod.boolean(),
-    walletTransfer: zod.boolean(),
-  })
-  .describe(
-    "Admin-controlled toggle map for emailing the user when each kind of\nplatform event happens. In-app notifications are always created;\nthese flags only affect the email side-channel.\n",
+export const getGetAdminNotificationSettingsUrl = () => {
+  return `/api/admin/notification-settings`;
+};
+
+export const getAdminNotificationSettings = async (
+  options?: RequestInit,
+): Promise<NotificationSettings> => {
+  return customFetch<NotificationSettings>(
+    getGetAdminNotificationSettingsUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
   );
+};
+
+export const getGetAdminNotificationSettingsQueryKey = () => {
+  return [`/api/admin/notification-settings`] as const;
+};
+
+export const getGetAdminNotificationSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminNotificationSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminNotificationSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminNotificationSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminNotificationSettings>>
+  > = ({ signal }) =>
+    getAdminNotificationSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminNotificationSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminNotificationSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminNotificationSettings>>
+>;
+export type GetAdminNotificationSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get per-action email notification toggles
+ */
+
+export function useGetAdminNotificationSettings<
+  TData = Awaited<ReturnType<typeof getAdminNotificationSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminNotificationSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminNotificationSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Update per-action email notification toggles
  */
-export const UpdateAdminNotificationSettingsBody = zod
-  .object({
-    withdrawalGasFeeRequired: zod.boolean(),
-    withdrawalApproved: zod.boolean(),
-    withdrawalRejected: zod.boolean(),
-    withdrawalExpired: zod.boolean(),
-    kycApproved: zod.boolean(),
-    kycRejected: zod.boolean(),
-    kycReset: zod.boolean(),
-    accountSuspended: zod.boolean(),
-    accountDisabled: zod.boolean(),
-    accountFlagged: zod.boolean(),
-    broadcastTicket: zod.boolean(),
-    mailboxReply: zod.boolean(),
-    liveChatHandoff: zod.boolean(),
-    withdrawalSubmitted: zod.boolean(),
-    depositReceived: zod.boolean(),
-    p2pOrderUpdate: zod.boolean(),
-    tradeOpened: zod.boolean(),
-    walletTransfer: zod.boolean(),
-  })
-  .describe(
-    "Admin-controlled toggle map for emailing the user when each kind of\nplatform event happens. In-app notifications are always created;\nthese flags only affect the email side-channel.\n",
-  );
+export const getUpdateAdminNotificationSettingsUrl = () => {
+  return `/api/admin/notification-settings`;
+};
 
-export const UpdateAdminNotificationSettingsResponse = zod
-  .object({
-    withdrawalGasFeeRequired: zod.boolean(),
-    withdrawalApproved: zod.boolean(),
-    withdrawalRejected: zod.boolean(),
-    withdrawalExpired: zod.boolean(),
-    kycApproved: zod.boolean(),
-    kycRejected: zod.boolean(),
-    kycReset: zod.boolean(),
-    accountSuspended: zod.boolean(),
-    accountDisabled: zod.boolean(),
-    accountFlagged: zod.boolean(),
-    broadcastTicket: zod.boolean(),
-    mailboxReply: zod.boolean(),
-    liveChatHandoff: zod.boolean(),
-    withdrawalSubmitted: zod.boolean(),
-    depositReceived: zod.boolean(),
-    p2pOrderUpdate: zod.boolean(),
-    tradeOpened: zod.boolean(),
-    walletTransfer: zod.boolean(),
-  })
-  .describe(
-    "Admin-controlled toggle map for emailing the user when each kind of\nplatform event happens. In-app notifications are always created;\nthese flags only affect the email side-channel.\n",
+export const updateAdminNotificationSettings = async (
+  notificationSettings: NotificationSettings,
+  options?: RequestInit,
+): Promise<NotificationSettings> => {
+  return customFetch<NotificationSettings>(
+    getUpdateAdminNotificationSettingsUrl(),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(notificationSettings),
+    },
   );
+};
+
+export const getUpdateAdminNotificationSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminNotificationSettings>>,
+    TError,
+    { data: BodyType<NotificationSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminNotificationSettings>>,
+  TError,
+  { data: BodyType<NotificationSettings> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminNotificationSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminNotificationSettings>>,
+    { data: BodyType<NotificationSettings> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateAdminNotificationSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminNotificationSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminNotificationSettings>>
+>;
+export type UpdateAdminNotificationSettingsMutationBody =
+  BodyType<NotificationSettings>;
+export type UpdateAdminNotificationSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update per-action email notification toggles
+ */
+export const useUpdateAdminNotificationSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminNotificationSettings>>,
+    TError,
+    { data: BodyType<NotificationSettings> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminNotificationSettings>>,
+  TError,
+  { data: BodyType<NotificationSettings> },
+  TContext
+> => {
+  return useMutation(
+    getUpdateAdminNotificationSettingsMutationOptions(options),
+  );
+};
 
 /**
  * @summary View the in-memory log of emails the platform has sent
  */
-export const GetAdminSentEmailsResponseItem = zod.object({
-  id: zod.string(),
-  to: zod.string(),
-  from: zod.string(),
-  subject: zod.string(),
-  body: zod.string(),
-  kind: zod.string(),
-  sentAt: zod.string(),
-});
-export const GetAdminSentEmailsResponse = zod.array(
-  GetAdminSentEmailsResponseItem,
-);
+export const getGetAdminSentEmailsUrl = () => {
+  return `/api/admin/sent-emails`;
+};
+
+export const getAdminSentEmails = async (
+  options?: RequestInit,
+): Promise<SentEmail[]> => {
+  return customFetch<SentEmail[]>(getGetAdminSentEmailsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminSentEmailsQueryKey = () => {
+  return [`/api/admin/sent-emails`] as const;
+};
+
+export const getGetAdminSentEmailsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminSentEmails>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminSentEmails>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminSentEmailsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminSentEmails>>
+  > = ({ signal }) => getAdminSentEmails({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminSentEmails>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminSentEmailsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminSentEmails>>
+>;
+export type GetAdminSentEmailsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary View the in-memory log of emails the platform has sent
+ */
+
+export function useGetAdminSentEmails<
+  TData = Awaited<ReturnType<typeof getAdminSentEmails>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminSentEmails>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminSentEmailsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Create a single support ticket pushed to every user (broadcast)
  */
-export const CreateBroadcastSupportTicketBody = zod.object({
-  subject: zod.string(),
-  message: zod.string(),
-  imageUrl: zod
-    .string()
-    .nullish()
-    .describe(
-      "Optional image attachment URL persisted on the broadcast\npayload (mailbox message or support ticket message).\n",
-    ),
-  priority: zod.enum(["low", "medium", "high", "urgent"]),
-  mode: zod
-    .enum(["ticket", "mailbox"])
-    .optional()
-    .describe(
-      "ticket = create a personal support ticket per recipient; mailbox = create a mailbox thread.",
-    ),
-  filters: zod
-    .object({
-      kycStatus: zod
-        .enum(["any", "not_submitted", "pending", "approved", "rejected"])
-        .optional(),
-      country: zod.string().nullish(),
-      merchant: zod.enum(["any", "only", "exclude"]).optional(),
-    })
-    .optional()
-    .describe("Recipient filters. Omit for all non-admin users."),
-});
+export const getCreateBroadcastSupportTicketUrl = () => {
+  return `/api/admin/broadcast-tickets`;
+};
 
-export const CreateBroadcastSupportTicketResponse = zod.object({
-  recipients: zod.number(),
-  mode: zod.enum(["ticket", "mailbox"]).optional(),
-  skipped: zod
-    .number()
-    .optional()
-    .describe("Number of users that did not match the filters."),
-});
+export const createBroadcastSupportTicket = async (
+  broadcastSupportTicketBody: BroadcastSupportTicketBody,
+  options?: RequestInit,
+): Promise<BroadcastResult> => {
+  return customFetch<BroadcastResult>(getCreateBroadcastSupportTicketUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(broadcastSupportTicketBody),
+  });
+};
+
+export const getCreateBroadcastSupportTicketMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBroadcastSupportTicket>>,
+    TError,
+    { data: BodyType<BroadcastSupportTicketBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBroadcastSupportTicket>>,
+  TError,
+  { data: BodyType<BroadcastSupportTicketBody> },
+  TContext
+> => {
+  const mutationKey = ["createBroadcastSupportTicket"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBroadcastSupportTicket>>,
+    { data: BodyType<BroadcastSupportTicketBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createBroadcastSupportTicket(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBroadcastSupportTicketMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBroadcastSupportTicket>>
+>;
+export type CreateBroadcastSupportTicketMutationBody =
+  BodyType<BroadcastSupportTicketBody>;
+export type CreateBroadcastSupportTicketMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a single support ticket pushed to every user (broadcast)
+ */
+export const useCreateBroadcastSupportTicket = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBroadcastSupportTicket>>,
+    TError,
+    { data: BodyType<BroadcastSupportTicketBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBroadcastSupportTicket>>,
+  TError,
+  { data: BodyType<BroadcastSupportTicketBody> },
+  TContext
+> => {
+  return useMutation(getCreateBroadcastSupportTicketMutationOptions(options));
+};
 
 /**
  * @summary Admin sets the ETH gas fee a user must fund and starts the countdown
  */
-export const SetWithdrawalGasFeeParams = zod.object({
-  withdrawalId: zod.coerce.string(),
-});
+export const getSetWithdrawalGasFeeUrl = (withdrawalId: string) => {
+  return `/api/admin/withdrawals/${withdrawalId}/set-gas-fee`;
+};
 
-export const setWithdrawalGasFeeBodyGasFeeAmountMin = 0;
+export const setWithdrawalGasFee = async (
+  withdrawalId: string,
+  adminSetWithdrawalGasFeeBody: AdminSetWithdrawalGasFeeBody,
+  options?: RequestInit,
+): Promise<Withdrawal> => {
+  return customFetch<Withdrawal>(getSetWithdrawalGasFeeUrl(withdrawalId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminSetWithdrawalGasFeeBody),
+  });
+};
 
-export const SetWithdrawalGasFeeBody = zod.object({
-  gasFeeAmount: zod
-    .number()
-    .min(setWithdrawalGasFeeBodyGasFeeAmountMin)
-    .describe("ETH amount the user must fund as gas fee."),
-  deadlineMinutes: zod
-    .number()
-    .min(1)
-    .describe(
-      "Minutes from now that the user has to fund the fee before the withdrawal expires.",
-    ),
-});
+export const getSetWithdrawalGasFeeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setWithdrawalGasFee>>,
+    TError,
+    { withdrawalId: string; data: BodyType<AdminSetWithdrawalGasFeeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setWithdrawalGasFee>>,
+  TError,
+  { withdrawalId: string; data: BodyType<AdminSetWithdrawalGasFeeBody> },
+  TContext
+> => {
+  const mutationKey = ["setWithdrawalGasFee"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const SetWithdrawalGasFeeResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setWithdrawalGasFee>>,
+    { withdrawalId: string; data: BodyType<AdminSetWithdrawalGasFeeBody> }
+  > = (props) => {
+    const { withdrawalId, data } = props ?? {};
+
+    return setWithdrawalGasFee(withdrawalId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetWithdrawalGasFeeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setWithdrawalGasFee>>
+>;
+export type SetWithdrawalGasFeeMutationBody =
+  BodyType<AdminSetWithdrawalGasFeeBody>;
+export type SetWithdrawalGasFeeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Admin sets the ETH gas fee a user must fund and starts the countdown
+ */
+export const useSetWithdrawalGasFee = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setWithdrawalGasFee>>,
+    TError,
+    { withdrawalId: string; data: BodyType<AdminSetWithdrawalGasFeeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof setWithdrawalGasFee>>,
+  TError,
+  { withdrawalId: string; data: BodyType<AdminSetWithdrawalGasFeeBody> },
+  TContext
+> => {
+  return useMutation(getSetWithdrawalGasFeeMutationOptions(options));
+};
 
 /**
  * @summary User confirms they have funded the required gas fee
  */
-export const MarkWithdrawalGasFeeFundedParams = zod.object({
-  withdrawalId: zod.coerce.string(),
-});
+export const getMarkWithdrawalGasFeeFundedUrl = (withdrawalId: string) => {
+  return `/api/withdrawals/${withdrawalId}/mark-gas-fee-funded`;
+};
 
-export const MarkWithdrawalGasFeeFundedBody = zod.object({
-  txHash: zod
-    .string()
-    .describe("On-chain tx hash proving the user funded the gas fee."),
-});
+export const markWithdrawalGasFeeFunded = async (
+  withdrawalId: string,
+  markGasFeeFundedBody: MarkGasFeeFundedBody,
+  options?: RequestInit,
+): Promise<Withdrawal> => {
+  return customFetch<Withdrawal>(
+    getMarkWithdrawalGasFeeFundedUrl(withdrawalId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(markGasFeeFundedBody),
+    },
+  );
+};
 
-export const MarkWithdrawalGasFeeFundedResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
+export const getMarkWithdrawalGasFeeFundedMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>,
+    TError,
+    { withdrawalId: string; data: BodyType<MarkGasFeeFundedBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>,
+  TError,
+  { withdrawalId: string; data: BodyType<MarkGasFeeFundedBody> },
+  TContext
+> => {
+  const mutationKey = ["markWithdrawalGasFeeFunded"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>,
+    { withdrawalId: string; data: BodyType<MarkGasFeeFundedBody> }
+  > = (props) => {
+    const { withdrawalId, data } = props ?? {};
+
+    return markWithdrawalGasFeeFunded(withdrawalId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkWithdrawalGasFeeFundedMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>
+>;
+export type MarkWithdrawalGasFeeFundedMutationBody =
+  BodyType<MarkGasFeeFundedBody>;
+export type MarkWithdrawalGasFeeFundedMutationError = ErrorType<unknown>;
+
+/**
+ * @summary User confirms they have funded the required gas fee
+ */
+export const useMarkWithdrawalGasFeeFunded = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>,
+    TError,
+    { withdrawalId: string; data: BodyType<MarkGasFeeFundedBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof markWithdrawalGasFeeFunded>>,
+  TError,
+  { withdrawalId: string; data: BodyType<MarkGasFeeFundedBody> },
+  TContext
+> => {
+  return useMutation(getMarkWithdrawalGasFeeFundedMutationOptions(options));
+};
 
 /**
  * @summary User cancels their own pending or awaiting-gas-fee withdrawal
  */
-export const CancelMyWithdrawalParams = zod.object({
-  withdrawalId: zod.coerce.string(),
-});
+export const getCancelMyWithdrawalUrl = (withdrawalId: string) => {
+  return `/api/withdrawals/${withdrawalId}/cancel`;
+};
 
-export const CancelMyWithdrawalResponse = zod.object({
-  id: zod.string(),
-  userId: zod.string(),
-  userName: zod.string(),
-  amount: zod.number(),
-  currency: zod.string(),
-  method: zod.enum(["crypto_wallet", "bank_transfer"]),
-  destination: zod.string(),
-  status: zod.enum([
-    "pending",
-    "awaiting_gas_fee",
-    "approved",
-    "rejected",
-    "completed",
-    "cancelled",
-    "expired",
-  ]),
-  rejectionReason: zod.string().nullish(),
-  createdAt: zod.string(),
-  decidedAt: zod.string().nullish(),
-  gasFeeAmount: zod
-    .number()
-    .nullish()
-    .describe(
-      "ETH gas fee amount the admin set on this withdrawal that the user must fund.",
-    ),
-  gasFeeDeadlineAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp by which the user must fund the gas fee. After this, the withdrawal expires.",
-    ),
-  gasFeeFundedAt: zod
-    .string()
-    .nullish()
-    .describe("ISO timestamp when the user marked the gas fee as funded."),
-  gasFeeTxHash: zod
-    .string()
-    .nullish()
-    .describe(
-      "On-chain tx hash provided by the user to prove gas-fee funding.",
-    ),
-  gasFeeDeductedAt: zod
-    .string()
-    .nullish()
-    .describe(
-      "ISO timestamp when the admin verified funding and the fee was deducted on approval.",
-    ),
-});
+export const cancelMyWithdrawal = async (
+  withdrawalId: string,
+  options?: RequestInit,
+): Promise<Withdrawal> => {
+  return customFetch<Withdrawal>(getCancelMyWithdrawalUrl(withdrawalId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCancelMyWithdrawalMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelMyWithdrawal>>,
+    TError,
+    { withdrawalId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelMyWithdrawal>>,
+  TError,
+  { withdrawalId: string },
+  TContext
+> => {
+  const mutationKey = ["cancelMyWithdrawal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelMyWithdrawal>>,
+    { withdrawalId: string }
+  > = (props) => {
+    const { withdrawalId } = props ?? {};
+
+    return cancelMyWithdrawal(withdrawalId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CancelMyWithdrawalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelMyWithdrawal>>
+>;
+
+export type CancelMyWithdrawalMutationError = ErrorType<unknown>;
+
+/**
+ * @summary User cancels their own pending or awaiting-gas-fee withdrawal
+ */
+export const useCancelMyWithdrawal = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelMyWithdrawal>>,
+    TError,
+    { withdrawalId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof cancelMyWithdrawal>>,
+  TError,
+  { withdrawalId: string },
+  TContext
+> => {
+  return useMutation(getCancelMyWithdrawalMutationOptions(options));
+};
