@@ -1,31 +1,17 @@
-kind = "web"
-previewPath = "/xpadmin/"
-title = "XpressPro FX — Admin Portal"
+kind = "design"
+previewPath = "/__mockup"
+title = "Canvas"
 version = "1.0.0"
-id = "artifacts/admin-portal"
-router = "path"
-
-[[integratedSkills]]
-name = "react-vite"
-version = "1.0.0"
+id = "XegfDyZt7HqfW2Bb8Ghoy"
 
 [[services]]
-name = "web"
-paths = [ "/xpadmin/" ]
-localPort = 25580
-
-[services.development]
-run = "pnpm --filter @workspace/admin-portal run dev"
-
-[services.production]
-build = [ "pnpm", "--filter", "@workspace/admin-portal", "run", "build" ]
-publicDir = "artifacts/admin-portal/dist/public"
-serve = "static"
-
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+localPort = 8081
+name = "Component Preview Server"
+paths = ["/__mockup"]
 
 [services.env]
-PORT = "25580"
-BASE_PATH = "/xpadmin/"
+PORT = "8081"
+BASE_PATH = "/__mockup"
+
+[services.development]
+run = "pnpm --filter @workspace/mockup-sandbox run dev"
