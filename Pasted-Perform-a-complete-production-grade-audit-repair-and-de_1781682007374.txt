@@ -1,0 +1,218 @@
+Perform a complete production-grade audit, repair, and deployment automation of this entire monorepo (frontend + backend + shared packages).
+
+GOAL:
+Create a fully working, secure, production-ready application that can be deployed directly from GitHub with ONE CLICK on:
+- Replit
+- Render
+- Railway
+- VPS
+- Any standard Node + Vite hosting platform
+
+The system must require ZERO manual fixes after pushing to GitHub (except setting environment variables).
+
+--------------------------------------------------
+
+🔴 1. FIX ALL DEPENDENCY ISSUES (CRITICAL)
+
+- Remove ALL "catalog:" dependencies from every package.json
+- Replace with stable npm-compatible versions
+- Ensure compatibility across workspace packages
+- Delete:
+  - node_modules
+  - pnpm-lock.yaml (if broken)
+- Regenerate a clean lockfile
+- Ensure:
+  pnpm install works with ZERO errors
+
+--------------------------------------------------
+
+🔴 2. SECURITY & ENVIRONMENT SETUP (CRITICAL)
+
+- Remove ALL exposed secrets:
+  - API keys (SendGrid, OpenAI, etc.)
+  - JWT secrets
+  - Database URLs
+- Ensure no secrets are hardcoded anywhere
+- Ensure:
+  - .env is NOT committed
+  - .env is in .gitignore
+- Create:
+  - .env.example (backend)
+  - .env.example (frontend)
+- Add environment validation (fail gracefully, not crash)
+
+--------------------------------------------------
+
+🟡 3. BACKEND HARDENING (API SERVER)
+
+- Ensure Express server:
+  - listens on 0.0.0.0
+  - uses process.env.PORT || 3000
+- Fix all TypeScript / ESM / build issues
+- Ensure:
+  - pnpm build works
+  - pnpm start works
+- Add production-safe logging and error handling
+- Prevent crashes if env variables are missing
+
+--------------------------------------------------
+
+🟡 4. FRONTEND (VITE APP FIX)
+
+- Ensure Vite builds without errors
+- Fix all broken imports
+- Configure:
+  - VITE_API_URL (auto switch dev vs production)
+- Ensure homepage `/` loads correctly
+
+--------------------------------------------------
+
+🔵 5. AUTH & ROUTING FIX (CRITICAL BUG)
+
+- Fix redirect loops sending users to /login
+- Ensure:
+  - `/` works correctly
+  - redirect ONLY when unauthenticated
+- Fix:
+  - auth guards
+  - routing logic
+  - useEffect loops
+
+--------------------------------------------------
+
+🟣 6. FIX REPLIT PREVIEW
+
+- Ensure correct run/start command
+- Ensure server binds properly
+- Fix “The app is running, but preview isn't ready”
+- Ensure frontend + backend run without crashing
+
+--------------------------------------------------
+
+🟢 7. MONOREPO & WORKSPACE FIX
+
+- Ensure all internal packages:
+  - build correctly
+  - are properly linked
+- Fix all broken imports
+- Ensure compatibility with:
+  - pnpm
+  - npm fallback
+
+--------------------------------------------------
+
+🟢 8. UNIVERSAL ONE-CLICK DEPLOYMENT SETUP
+
+Prepare the project for automatic deployment from GitHub to:
+
+- Replit
+- Render
+- Railway
+- VPS
+- Any Node + Vite platform
+
+Add and configure:
+
+1. Root scripts:
+   - "dev"
+   - "build"
+   - "start"
+
+2. Deployment config files:
+
+   📄 render.yaml
+   - Auto deploy on push
+   - Correct build/start commands
+
+   📄 railway.json
+   - Auto deploy configuration
+
+   📄 Procfile
+   - For generic Node hosting
+
+   📄 ecosystem.config.js
+   - For VPS using PM2
+
+3. Ensure:
+- App runs with:
+  npm install && npm run build && npm start
+- No platform-specific hacks
+- PORT handled dynamically
+- CORS configured safely
+
+--------------------------------------------------
+
+🟢 9. AUTO-DEPLOY PIPELINE (CRITICAL)
+
+Ensure:
+
+✔ GitHub push triggers auto deploy (Render & Railway)
+✔ No manual fixing required after deploy
+✔ Build command:
+   npm install && npm run build
+✔ Start command:
+   npm start
+✔ App works immediately after deploy
+
+--------------------------------------------------
+
+🟢 10. VPS SUPPORT
+
+- Ensure app runs with:
+  npm start OR node dist/index.js
+- Add optional PM2 setup
+- Ensure restart-safe (no crash loops)
+
+--------------------------------------------------
+
+⚙️ 11. FINAL VALIDATION (MANDATORY)
+
+Run:
+
+- pnpm install
+- pnpm build
+- pnpm start
+
+Verify:
+
+✔ No errors  
+✔ Backend runs  
+✔ Frontend loads  
+✔ API connects  
+✔ Auth works  
+✔ No crashes  
+
+--------------------------------------------------
+
+📊 12. FINAL REPORT
+
+Output:
+
+- All fixes applied
+- Files modified
+- Security fixes made
+- Deployment readiness
+
+Confirm readiness for:
+
+✔ Replit  
+✔ Render  
+✔ Railway  
+✔ VPS  
+✔ Any Node + Vite host  
+
+--------------------------------------------------
+
+🎯 FINAL GOAL
+
+The repository must be:
+
+- Production-ready
+- Secure (no secrets leaked)
+- Dependency-stable
+- Free of "catalog:"
+- No broken builds
+- No routing bugs
+- Replit preview working
+- GitHub → ONE-CLICK deploy ready
+- Compatible across ALL platforms

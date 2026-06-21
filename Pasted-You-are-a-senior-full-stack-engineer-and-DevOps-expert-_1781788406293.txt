@@ -1,0 +1,164 @@
+You are a senior full-stack engineer and DevOps expert. Audit, fix, and prepare this entire monorepo project for production deployment across multiple platforms (Replit, GitHub, Railway, Render, VPS, Node.js + Vite environments).
+
+🔴 CRITICAL FIXES (HIGH PRIORITY)
+
+1. Stop pnpm recursion loop
+    * Remove any script, hook, or config that runs:
+        * pnpm add pnpm
+    * Ensure no postinstall, build, or hidden script triggers pnpm self-installation.
+    * Use only:
+        * "packageManager": "pnpm@9.5.0"
+    * Use Corepack correctly:
+        * corepack enable
+        * corepack prepare pnpm@9.5.0 --activate
+2. Fix workspace structure
+    * Ensure correct pnpm-workspace.yaml
+    * Ensure root package.json is valid and minimal
+    * Remove corrupted lockfiles and regenerate cleanly
+    * Ensure all packages resolve correctly
+3. Stabilize build system
+    * Ensure project builds with:
+        * pnpm install
+        * pnpm build
+        * pnpm start
+    * No crashes, no SIGABRT, no thread exhaustion
+    * Remove unnecessary heavy overrides if breaking build
+
+⸻
+
+🟡 PROJECT STRUCTURE & CLEANUP
+
+4. Reorganize project for portability
+    * Ensure it runs outside Replit (GitHub, Railway, VPS)
+    * Clean folder structure:
+        * /apps or /services
+        * /packages
+        * /lib
+    * Remove Replit-specific dependencies if not needed
+5. Ensure environment compatibility
+    * Add .env.example
+    * Validate required env variables:
+        * DATABASE_URL
+        * JWT_SECRET
+        * SESSION_SECRET
+        * API KEYS
+
+⸻
+
+🟢 BACKEND + FUNCTIONALITY FIX
+
+6. Admin panel (FULL CONTROL)
+    * Admin can:
+        * edit users
+        * delete users
+        * manage balances
+        * manage transactions
+        * control system settings
+    * Ensure all endpoints work (no mock data)
+7. User system
+    * Authentication must be real (JWT/session)
+    * Data persistence via database (not UI-only)
+
+⸻
+
+💬 REAL-TIME CHAT SYSTEM (VERY IMPORTANT)
+
+8. Implement full real-time messaging system:
+    * Admin ↔ User chat
+    * User ↔ Admin chat
+    * Either party can initiate conversation
+    * Company mailbox system (shared inbox)
+9. Requirements:
+    * WebSocket or real-time polling
+    * Store messages in database
+    * Show unread counts
+    * Show online/offline status
+    * Message history persists
+
+⸻
+
+🟣 FRONTEND + UX VALIDATION
+
+10. Ensure:
+
+* No broken UI routes
+* API connected properly
+* No dummy data
+* All buttons perform real actions
+
+⸻
+
+🚀 DEPLOYMENT READINESS
+
+11. Make project deployable to:
+
+* Railway
+* Render
+* VPS (Node.js)
+* Vite frontend hosting
+
+12. Add:
+
+* start script
+* proper build output
+* no hardcoded paths
+
+13. Ensure:
+
+* pnpm install && pnpm build works in CI
+* No platform-specific crashes
+
+⸻
+
+🧪 FINAL TESTING (MANDATORY)
+
+14. Automatically test:
+
+* Install
+* Build
+* Start server
+* API endpoints
+* Auth flow
+* Chat system
+* Admin panel
+
+15. Fix ALL:
+
+* errors
+* warnings
+* broken dependencies
+* security risks
+
+⸻
+
+🔐 SECURITY & STABILITY
+
+16. Fix:
+
+* vulnerable dependencies
+* unsafe configs
+* missing validation
+* improper auth logic
+
+⸻
+
+✅ FINAL RESULT REQUIRED
+
+* Fully working fintech/forex web app
+* Real backend (not UI-only)
+* Real-time chat system
+* Stable pnpm install (NO loops)
+* Deployable on any platform
+* Clean GitHub-ready repository
+* Production-ready codebase
+
+⸻
+
+If any part is broken, fix it completely — do not leave placeholders, mocks, or incomplete logic.
+
+Return a summary of:
+
+* issues found
+* fixes applied
+* deployment status
+* remaining risks (if any)
